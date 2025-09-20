@@ -1,0 +1,148 @@
+# ROS 2 Build Artifacts
+build/
+install/
+log/
+
+# ROS 2 Workspace Files
+.colcon_install_layout
+.colcon_build_layout
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE and Editor Files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+.vscode/.ropeproject
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+.vimrc.local
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ROS Specific
+*.bag
+*.db3
+*.mcap
+
+# Temporary Files
+*.tmp
+*.temp
+*.log
+*.bak
+*.backup
+
+# Gazebo
+.gazebo/
+
+# Qt Creator
+CMakeLists.txt.user*
+
+# Backup files
+*~
+*.orig
+*.rej
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app

@@ -7,7 +7,7 @@ from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    # Get the UR5 URDF from the official ur_description package
+    # Get the UR5 URDF from the official ur_description package with proper parameters
     robot_description_content = Command([
         'xacro ', 
         PathJoinSubstitution([
@@ -16,13 +16,16 @@ def generate_launch_description():
             'ur.urdf.xacro'
         ]),
         ' ur_type:=ur5',
-        ' name:=ur'
+        ' name:=ur',
+        ' safety_limits:=true',
+        ' safety_pos_margin:=0.15',
+        ' safety_k_position:=20'
     ])
 
     robot_description = ParameterValue(robot_description_content, value_type=str)
 
-    # RViz config file
-    rviz_config_file = os.path.join(get_package_share_directory('arm_simulation'), 'rviz', 'ur5_arm.rviz')
+    # RViz config file - using the working official config
+    rviz_config_file = os.path.join(get_package_share_directory('arm_simulation'), 'rviz', 'ur5_arm_working.rviz')
 
     return LaunchDescription([
         # Robot State Publisher

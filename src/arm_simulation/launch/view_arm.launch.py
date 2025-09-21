@@ -19,7 +19,8 @@ def generate_launch_description():
         ' name:=ur',
         ' safety_limits:=true',
         ' safety_pos_margin:=0.15',
-        ' safety_k_position:=20'
+        ' safety_k_position:=20',
+        ' prefix:=""'
     ])
 
     robot_description = ParameterValue(robot_description_content, value_type=str)
@@ -28,25 +29,33 @@ def generate_launch_description():
     rviz_config_file = os.path.join(get_package_share_directory('arm_simulation'), 'rviz', 'ur5_arm_working.rviz')
 
     return LaunchDescription([
-        # Robot State Publisher
+        # Robot State Publisher - with explicit frequency
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
             output='screen',
             parameters=[{
                 'robot_description': robot_description,
-                'use_sim_time': False
+                'use_sim_time': False,
+                'publish_frequency': 30.0
             }]
         ),
         
-        # Joint State Publisher GUI
+        # Joint State Publisher GUI with enhanced parameters
         Node(
             package='joint_state_publisher_gui',
             executable='joint_state_publisher_gui',
             output='screen',
             parameters=[{
-                'use_sim_time': False
-            }]
+                'use_sim_time': False,
+                'rate': 30,
+                'dependent_joints': {},
+                'zeros': {},
+                'robot_description': robot_description
+            }],
+            remappings=[
+                ('/joint_states', '/joint_states')
+            ]
         ),
         
         # RViz

@@ -34,4 +34,10 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/rviz
 )
 
+# Install Python scripts
+install(PROGRAMS
+  scripts/random_pose_publisher.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_package()

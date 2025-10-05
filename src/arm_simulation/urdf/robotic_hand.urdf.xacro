@@ -15,11 +15,19 @@
 
   <!-- Materials -->
   <material name="hand_material">
-    <color rgba="0.8 0.6 0.4 1.0"/>
+    <color rgba="0.95 0.87 0.73 1.0"/>  <!-- Skin tone -->
   </material>
   
   <material name="finger_material">
-    <color rgba="0.7 0.5 0.3 1.0"/>
+    <color rgba="0.92 0.83 0.68 1.0"/>  <!-- Slightly darker skin tone -->
+  </material>
+
+  <material name="palm_material">
+    <color rgba="0.98 0.90 0.76 1.0"/>  <!-- Palm color -->
+  </material>
+
+  <material name="nail_material">
+    <color rgba="0.95 0.92 0.88 1.0"/>  <!-- Nail color -->
   </material>
 
   <!-- Base world link for proper orientation -->
@@ -44,7 +52,7 @@
       <geometry>
         <box size="${hand_length} ${hand_width} ${hand_height}"/>
       </geometry>
-      <material name="hand_material"/>
+      <material name="palm_material"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </visual>
     <collision>
@@ -120,7 +128,7 @@
         <geometry>
           <box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/>
         </geometry>
-        <material name="finger_material"/>
+        <material name="nail_material"/>
         <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
       </visual>
       <collision>
@@ -197,7 +205,7 @@
         <geometry>
           <box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/>
         </geometry>
-        <material name="finger_material"/>
+        <material name="nail_material"/>
         <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
       </visual>
       <collision>

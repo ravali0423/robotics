@@ -49,14 +49,9 @@ class SpeechRecognitionNode(Node):
         # Check if speech recognition is available
         if not SPEECH_RECOGNITION_AVAILABLE:
             self.get_logger().error("Speech recognition library not available!")
-            self.get_logger().error("Please install: pip install SpeechRecognition")
-            if AUDIO_BACKEND is None:
-                self.get_logger().error("No audio backend available. Install: pip install pyaudio OR pip install sounddevice")
-            self.get_logger().info("Running in text-only mode. Use /user_command to send text directly.")
             self.speech_available = False
         else:
             self.speech_available = True
-            self.get_logger().info(f"Speech recognition available with {AUDIO_BACKEND} backend")
         
         # Publishers
         self.text_pub = self.create_publisher(String, '/recognized_speech', 10)
@@ -79,11 +74,9 @@ class SpeechRecognitionNode(Node):
                 if AUDIO_BACKEND == 'sounddevice':
                     # Use sounddevice backend
                     self.microphone = sr.Microphone()
-                    self.get_logger().info("Using SoundDevice backend for audio")
                 else:
                     # Default to pyaudio
                     self.microphone = sr.Microphone()
-                    self.get_logger().info("Using PyAudio backend for audio")
             except Exception as e:
                 self.get_logger().error(f"Failed to initialize microphone: {e}")
                 self.speech_available = False
@@ -169,8 +162,6 @@ class SpeechRecognitionNode(Node):
         self.recognition_thread = threading.Thread(target=self._recognition_worker)
         self.recognition_thread.daemon = True
         self.recognition_thread.start()
-        
-        self.get_logger().info('Started listening for speech...')
     
     def stop_listening(self):
         """Stop speech recognition"""
@@ -184,8 +175,6 @@ class SpeechRecognitionNode(Node):
         # Wait for thread to finish
         if self.recognition_thread and self.recognition_thread.is_alive():
             self.recognition_thread.join(timeout=2.0)
-        
-        self.get_logger().info('Stopped listening for speech')
     
     def _recognition_worker(self):
         """Worker thread for continuous speech recognition"""

@@ -17,8 +17,8 @@ class EnhancedHandController(Node):
     def __init__(self):
         super().__init__('enhanced_hand_controller')
         
-        # Initialize basic ASL alphabet configurations
-        self.asl_alphabet = self._init_basic_asl_alphabet()
+        # Initialize complete ASL alphabet configurations
+        self.asl_alphabet = self._init_complete_asl_alphabet()
         
         # Publishers
         self.joint_pub = self.create_publisher(JointState, '/joint_states', 10)
@@ -68,10 +68,10 @@ class EnhancedHandController(Node):
         self.get_logger().info('Available commands:')
         self.get_logger().info('  - /finger_count (Int32): 0-5 for finger counting')
         self.get_logger().info('  - /gesture_command (String): "hello", "goodbye", etc.')
-        self.get_logger().info('  - /letter_command (String): "a", "b", "c", ... for finger spelling')
+        self.get_logger().info('  - /letter_command (String): a-z for complete ASL alphabet finger spelling')
     
-    def _init_basic_asl_alphabet(self):
-        """Initialize basic ASL alphabet configurations"""
+    def _init_complete_asl_alphabet(self):
+        """Initialize complete ASL alphabet configurations"""
         return {
             'a': {  # Closed fist with thumb on side
                 'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.3,
@@ -93,6 +93,167 @@ class EnhancedHandController(Node):
                 'middle_base_joint': 0.0, 'middle_proximal_joint': 0.8, 'middle_middle_joint': 0.6,
                 'ring_base_joint': 0.0, 'ring_proximal_joint': 0.8, 'ring_middle_joint': 0.6,
                 'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.8, 'pinky_middle_joint': 0.6
+            },
+            'd': {  # Index finger up, others folded
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'e': {  # All fingers bent down, thumb across
+                'thumb_base_joint': 0.3, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.0, 'index_middle_joint': 1.5,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.0, 'middle_middle_joint': 1.5,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.0, 'ring_middle_joint': 1.5,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.0, 'pinky_middle_joint': 1.5
+            },
+            'f': {  # Index and middle touching thumb, others extended
+                'thumb_base_joint': -0.2, 'thumb_proximal_joint': 0.5,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.8, 'index_middle_joint': 1.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.8, 'middle_middle_joint': 1.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 0.0, 'ring_middle_joint': 0.0,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'g': {  # Index finger pointing sideways
+                'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.0,
+                'index_base_joint': 0.5, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'h': {  # Index and middle fingers sideways
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.5, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.5, 'middle_proximal_joint': 0.0, 'middle_middle_joint': 0.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'i': {  # Pinky finger up
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.4, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'j': {  # Pinky finger making J motion (static position)
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.4, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': -0.3, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'k': {  # Index up, middle bent with thumb
+                'thumb_base_joint': -0.2, 'thumb_proximal_joint': 0.5,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.5, 'middle_middle_joint': 0.8,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'l': {  # Thumb and index extended (L shape)
+                'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.0,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'm': {  # Three fingers over thumb
+                'thumb_base_joint': 0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.0, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.0, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.0, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'n': {  # Two fingers over thumb
+                'thumb_base_joint': 0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.0, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.0, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 0.0, 'ring_middle_joint': 0.0,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'o': {  # All fingers curved like holding a ball
+                'thumb_base_joint': -0.2, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.0, 'index_middle_joint': 1.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.0, 'middle_middle_joint': 1.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.0, 'ring_middle_joint': 1.0,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.0, 'pinky_middle_joint': 1.0
+            },
+            'p': {  # Like K but pointing down
+                'thumb_base_joint': -0.2, 'thumb_proximal_joint': 0.5,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.3, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.5, 'middle_middle_joint': 0.8,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'q': {  # Index and thumb pointing down
+                'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.5,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.3, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'r': {  # Index and middle crossed
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.2, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': -0.2, 'middle_proximal_joint': 0.0, 'middle_middle_joint': 0.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            's': {  # Closed fist with thumb in front
+                'thumb_base_joint': 0.0, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.4, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            't': {  # Thumb between index and middle
+                'thumb_base_joint': 0.2, 'thumb_proximal_joint': 0.5,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.4, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'u': {  # Index and middle up together
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.0, 'middle_middle_joint': 0.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'v': {  # Peace sign (index and middle spread)
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': -0.2, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.2, 'middle_proximal_joint': 0.0, 'middle_middle_joint': 0.0,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'w': {  # Three fingers up (index, middle, ring)
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': -0.2, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.0, 'middle_middle_joint': 0.0,
+                'ring_base_joint': 0.2, 'ring_proximal_joint': 0.0, 'ring_middle_joint': 0.0,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'x': {  # Index finger hooked
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
+            },
+            'y': {  # Thumb and pinky extended
+                'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.0,
+                'index_base_joint': 0.0, 'index_proximal_joint': 1.4, 'index_middle_joint': 1.2,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
+            },
+            'z': {  # Index finger making Z motion (static position)
+                'thumb_base_joint': -0.5, 'thumb_proximal_joint': 0.8,
+                'index_base_joint': -0.3, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 1.4, 'middle_middle_joint': 1.2,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 1.4, 'ring_middle_joint': 1.2,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 1.4, 'pinky_middle_joint': 1.2
             },
             'hello': {  # Open hand wave
                 'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.0,

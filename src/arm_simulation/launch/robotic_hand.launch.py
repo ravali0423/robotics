@@ -38,10 +38,10 @@ def generate_launch_description():
             }]
         ),
         
-        # Hand Controller Node
+        # Enhanced Hand Controller Node
         Node(
             package='arm_simulation',
-            executable='hand_controller.py',
+            executable='enhanced_hand_controller.py',
             output='screen',
             parameters=[{
                 'use_sim_time': False

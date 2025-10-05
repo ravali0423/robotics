@@ -128,19 +128,26 @@ class SpeechToGestureCoordinator(Node):
     def sequence_status_callback(self, msg):
         """Handle gesture sequence status"""
         status = msg.data.lower()
+        self.get_logger().info(f'Received sequence status: "{status}"')
         
         if status == 'playing':
             self.is_gesture_active = True
             self.set_system_mode('gesturing')
             self.last_gesture_time = time.time()
         elif status in ['completed', 'stopped']:
+            self.get_logger().info(f'Sequence {status} - is_gesture_active={self.is_gesture_active}, system_mode={self.system_mode}')
             self.is_gesture_active = False
-            if self.system_mode == 'gesturing':
+            if self.system_mode in ['gesturing', 'processing']:  # Handle both gesturing and processing modes
                 self.set_system_mode('ready')
                 # Restart listening if auto mode
                 if self.auto_start_listening:
+                    self.get_logger().info('Auto-restart enabled - restarting speech recognition in 1 second')
                     time.sleep(1.0)  # Brief pause
                     self.start_listening()
+                else:
+                    self.get_logger().info('Auto-restart disabled - speech recognition NOT restarted')
+            else:
+                self.get_logger().info(f'System mode is {self.system_mode}, not restarting speech recognition')
     
     def current_gesture_callback(self, msg):
         """Handle current gesture updates"""

@@ -20,6 +20,7 @@ class GestureSequencer(Node):
         # Publishers
         self.gesture_command_pub = self.create_publisher(String, '/gesture_command', 10)
         self.letter_command_pub = self.create_publisher(String, '/letter_command', 10)
+        self.finger_count_pub = self.create_publisher(Int32, '/finger_count', 10)
         self.sequence_status_pub = self.create_publisher(String, '/sequence_status', 10)
         self.sequence_progress_pub = self.create_publisher(Int32, '/sequence_progress', 10)
         
@@ -39,28 +40,27 @@ class GestureSequencer(Node):
         self.sequence_name = ""
         
         # Timing parameters
-        self.letter_duration = 1.5  # seconds per letter
+        self.letter_duration = 1.0  # seconds per letter (increased speed)
         self.word_pause = 2.0      # pause between words
-        self.letter_pause = 0.8    # pause between letters
-        self.gesture_duration = 2.5 # duration for complete word gestures
+        self.letter_pause = 0.5    # pause between letters (increased speed)
+        self.gesture_duration = 1.8 # duration for complete word gestures (increased speed)
+        self.post_gesture_delay = 5.0 # wait time before returning to neutral
         
         # Parameters
         self.declare_parameter('letter_duration', self.letter_duration)
         self.declare_parameter('word_pause', self.word_pause)
         self.declare_parameter('letter_pause', self.letter_pause)
         self.declare_parameter('gesture_duration', self.gesture_duration)
+        self.declare_parameter('post_gesture_delay', self.post_gesture_delay)
         
         # Update from parameters
         self.letter_duration = self.get_parameter('letter_duration').value
         self.word_pause = self.get_parameter('word_pause').value
         self.letter_pause = self.get_parameter('letter_pause').value
         self.gesture_duration = self.get_parameter('gesture_duration').value
+        self.post_gesture_delay = self.get_parameter('post_gesture_delay').value
         
-        self.get_logger().info('Gesture Sequencer initialized')
-        self.get_logger().info('Commands:')
-        self.get_logger().info('  - /text_to_sequence (String): Text to convert to gesture sequence')
-        self.get_logger().info('  - /sequence_control (String): "play", "pause", "stop", "reset"')
-        self.get_logger().info(f'Timing: letter={self.letter_duration}s, word_pause={self.word_pause}s')
+        # Gesture Sequencer initialized with optimized logging
     
     def text_sequence_callback(self, msg):
         """Convert text to gesture sequence"""
@@ -69,7 +69,7 @@ class GestureSequencer(Node):
             self.get_logger().warn('Empty text received')
             return
         
-        self.get_logger().info(f'Creating sequence for: "{text}"')
+        # Creating sequence for input text
         self.create_sequence_from_text(text)
     
     def control_callback(self, msg):
@@ -90,7 +90,47 @@ class GestureSequencer(Node):
             self.previous_gesture()
         else:
             self.get_logger().warn(f'Unknown control command: "{command}"')
-            self.get_logger().info('Available commands: play, pause, stop, reset, next, previous')
+    
+    def translate_number_words(self, text: str) -> str:
+        """
+        Translate number words to digits for gesture recognition
+        
+        Args:
+            text: Input text that may contain number words
+            
+        Returns:
+            Text with number words converted to digits
+        """
+        number_word_map = {
+            'zero': '0',
+            'one': '1',
+            'two': '2',
+            'three': '3',
+            'four': '4',
+            'five': '5',
+            'six': '6',
+            'seven': '7',
+            'eight': '8',
+            'nine': '9',
+            'ten': '10'
+        }
+        
+        words = text.split()
+        translated_words = []
+        
+        for word in words:
+            # Remove punctuation and convert to lowercase for matching
+            clean_word = word.lower().strip('.,!?;:')
+            
+            if clean_word in number_word_map:
+                # Replace with digit but preserve original punctuation
+                punctuation = word[len(clean_word):] if len(word) > len(clean_word) else ''
+                translated_words.append(number_word_map[clean_word] + punctuation)
+                self.get_logger().info(f'Translated "{clean_word}" to "{number_word_map[clean_word]}"')
+            else:
+                translated_words.append(word)
+        
+        return ' '.join(translated_words)
     
     def create_sequence_from_text(self, text: str):
         """
@@ -101,6 +141,13 @@ class GestureSequencer(Node):
         """
         # Stop any current sequence
         self.stop_sequence()
+        
+        # Translate number words to digits first
+        original_text = text
+        text = self.translate_number_words(text)
+        
+        if original_text != text:
+            self.get_logger().info(f'Text translation: "{original_text}" → "{text}"')
         
         # Simple sequence creation - just spell out characters
         self.current_sequence = []
@@ -124,22 +171,25 @@ class GestureSequencer(Node):
             else:
                 # Finger spell the word
                 for char_index, char in enumerate(word):
-                    if char.isalpha():
+                    if char.isalpha() or char.isdigit():
+                        gesture_type = 'letter' if char.isalpha() else 'finger_count'
+                        description = f'Letter: {char}' if char.isalpha() else f'Number: {char}'
+                        
                         self.current_sequence.append({
-                            'type': 'letter',
+                            'type': gesture_type,
                             'command': char,
                             'duration': self.letter_duration,
-                            'description': f'Letter: {char}',
+                            'description': description,
                             'config': {}
                         })
                         
-                        # Add pause between letters (except last letter)
+                        # Add pause between characters (except last character)
                         if char_index < len(word) - 1:
                             self.current_sequence.append({
                                 'type': 'pause',
                                 'command': 'neutral',
                                 'duration': self.letter_pause,
-                                'description': 'Letter pause',
+                                'description': 'Character pause',
                                 'config': {}
                             })
             
@@ -154,8 +204,7 @@ class GestureSequencer(Node):
                 })
         
         self.sequence_index = 0
-        self.get_logger().info(f'Created sequence with {len(self.current_sequence)} gestures')
-        self.publish_sequence_status(f'Sequence created: "{text}" ({len(self.current_sequence)} gestures)')
+        # Sequence created, starting playback
         
         # Automatically start playing
         self.play_sequence()
@@ -178,8 +227,7 @@ class GestureSequencer(Node):
         self.sequence_thread.daemon = True
         self.sequence_thread.start()
         
-        self.get_logger().info(f'Playing sequence: "{self.sequence_name}"')
-        self.publish_sequence_status('Playing')
+        # Playing sequence
     
     def pause_sequence(self):
         """Pause the current sequence"""
@@ -188,8 +236,6 @@ class GestureSequencer(Node):
             return
         
         self.is_paused = True
-        self.get_logger().info('Sequence paused')
-        self.publish_sequence_status('Paused')
     
     def stop_sequence(self):
         """Stop the current sequence"""
@@ -201,9 +247,6 @@ class GestureSequencer(Node):
         
         # Reset to neutral position
         self._send_gesture_command('gesture', 'neutral')
-        
-        self.get_logger().info('Sequence stopped')
-        self.publish_sequence_status('Stopped')
     
     def reset_sequence(self):
         """Reset sequence to beginning"""
@@ -219,8 +262,6 @@ class GestureSequencer(Node):
             return
         
         self.sequence_index = min(self.sequence_index + 1, len(self.current_sequence) - 1)
-        self.get_logger().info(f'Skipped to gesture {self.sequence_index + 1}/{len(self.current_sequence)}')
-        self.publish_sequence_progress(self.sequence_index)
     
     def previous_gesture(self):
         """Go to previous gesture in sequence"""
@@ -245,7 +286,6 @@ class GestureSequencer(Node):
             gesture = self.current_sequence[self.sequence_index]
             
             # Execute gesture
-            self.get_logger().info(f'Gesture {self.sequence_index + 1}/{len(self.current_sequence)}: {gesture["description"]}')
             self._send_gesture_command(gesture['type'], gesture['command'])
             
             # Publish progress
@@ -264,10 +304,21 @@ class GestureSequencer(Node):
         # Sequence completed or stopped
         if self.is_playing and self.sequence_index >= len(self.current_sequence):
             self.get_logger().info('Sequence completed')
-            self.publish_sequence_status('Completed')
+            
+            # Wait for post-gesture delay before returning to neutral
+            self.get_logger().info(f'Waiting {self.post_gesture_delay} seconds before returning to neutral...')
+            start_time = time.time()
+            while time.time() - start_time < self.post_gesture_delay and self.is_playing:
+                time.sleep(0.1)
+            
             self.is_playing = False
             # Return to neutral
+            self.get_logger().info('Returning to neutral position')
             self._send_gesture_command('gesture', 'neutral')
+            
+            # Publish completed status after returning to neutral
+            self.get_logger().info('Publishing sequence status: Completed')
+            self.publish_sequence_status('Completed')
     
     def _send_gesture_command(self, gesture_type: str, command: str):
         """Send gesture command to appropriate topic"""
@@ -276,11 +327,22 @@ class GestureSequencer(Node):
         
         if gesture_type == 'letter':
             self.letter_command_pub.publish(msg)
+        elif gesture_type == 'finger_count':
+            # Send digit to finger counting topic
+            finger_msg = Int32()
+            try:
+                finger_msg.data = int(command)
+                self.finger_count_pub.publish(finger_msg)
+                self.get_logger().info(f'Sent finger count: {command}')
+            except ValueError:
+                # Fallback to gesture command
+                self.gesture_command_pub.publish(msg)
         else:  # gesture or pause
             self.gesture_command_pub.publish(msg)
     
     def publish_sequence_status(self, status: str):
         """Publish sequence status"""
+        self.get_logger().info(f'Publishing sequence status to /sequence_status: {status}')
         msg = String()
         msg.data = status
         self.sequence_status_pub.publish(msg)
@@ -311,13 +373,13 @@ class GestureSequencer(Node):
             "hello",
             "abc",
             "123",
+            "one two three",
             "hello world",
-            "thank you"
+            "thank you",
+            "count one two three four five"
         ]
         
-        self.get_logger().info('Demo sequences available:')
-        for text in demo_texts:
-            self.get_logger().info(f'  - "{text}"')
+        # Demo sequences available for testing
     
     def destroy_node(self):
         """Clean shutdown"""

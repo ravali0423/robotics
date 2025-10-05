@@ -3,7 +3,7 @@
 <package format="3">
   <name>arm_simulation</name>
   <version>0.0.1</version>
-  <description>Robotic hand simulation package with finger counting capabilities</description>
+  <description>Speech-to-Gesture Assistive Technology - Robotic hand simulation with ASL translation for deaf community</description>
   <maintainer email="ravali@example.com">ravali</maintainer>
   <license>Apache-2.0</license>
 
@@ -13,6 +13,8 @@
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
   <depend>robot_state_publisher</depend>
   <depend>joint_state_publisher</depend>
   <depend>joint_state_publisher_gui</depend>

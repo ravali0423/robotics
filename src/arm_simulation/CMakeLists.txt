@@ -11,6 +11,8 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(robot_state_publisher REQUIRED)
 find_package(urdf REQUIRED)
 find_package(xacro REQUIRED)
@@ -46,6 +48,14 @@ install(DIRECTORY
 # Install Python scripts
 install(PROGRAMS
   scripts/hand_controller.py
+  scripts/enhanced_hand_controller.py
+  scripts/speech_recognition_node.py
+  scripts/gesture_sequencer.py
+  scripts/speech_to_gesture_coordinator.py
+  scripts/audio_visual_feedback.py
+  scripts/speech_to_gesture_demo.py
+  scripts/system_tester.py
+  scripts/test_hand.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

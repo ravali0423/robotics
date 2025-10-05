@@ -1,0 +1,11 @@
+# Speech Recognition Dependencies for Speech-to-Gesture System
+SpeechRecognition>=3.10.0
+PyAudio>=0.2.11
+
+# Optional dependencies for better audio handling
+sounddevice>=0.4.6
+numpy>=1.21.0
+
+# Audio processing utilities
+wave>=0.0.2
+audioop>=0.0.1

@@ -22,6 +22,10 @@
   <depend>xacro</depend>
   <depend>rviz2</depend>
 
+  <!-- Python dependencies for speech recognition -->
+  <exec_depend>python3-pyaudio</exec_depend>
+  <exec_depend>python3-speechrecognition</exec_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

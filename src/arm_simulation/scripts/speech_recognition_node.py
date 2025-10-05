@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+import sys
+import os
+
+# Add virtual environment packages to Python path
+venv_path = '/home/ravali/ros2_ws/.venv/lib/python3.12/site-packages'
+if os.path.exists(venv_path) and venv_path not in sys.path:
+    sys.path.insert(0, venv_path)
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
@@ -11,9 +19,23 @@ import queue
 try:
     import speech_recognition as sr
     SPEECH_RECOGNITION_AVAILABLE = True
+    
+    # Try to use sounddevice instead of pyaudio if pyaudio is not available
+    try:
+        import pyaudio
+        AUDIO_BACKEND = 'pyaudio'
+    except ImportError:
+        try:
+            import sounddevice as sd
+            import numpy as np
+            AUDIO_BACKEND = 'sounddevice'
+        except ImportError:
+            SPEECH_RECOGNITION_AVAILABLE = False
+            AUDIO_BACKEND = None
 except ImportError:
     SPEECH_RECOGNITION_AVAILABLE = False
     sr = None
+    AUDIO_BACKEND = None
 
 class SpeechRecognitionNode(Node):
     """
@@ -27,11 +49,14 @@ class SpeechRecognitionNode(Node):
         # Check if speech recognition is available
         if not SPEECH_RECOGNITION_AVAILABLE:
             self.get_logger().error("Speech recognition library not available!")
-            self.get_logger().error("Please install: pip install SpeechRecognition pyaudio")
+            self.get_logger().error("Please install: pip install SpeechRecognition")
+            if AUDIO_BACKEND is None:
+                self.get_logger().error("No audio backend available. Install: pip install pyaudio OR pip install sounddevice")
             self.get_logger().info("Running in text-only mode. Use /user_command to send text directly.")
             self.speech_available = False
         else:
             self.speech_available = True
+            self.get_logger().info(f"Speech recognition available with {AUDIO_BACKEND} backend")
         
         # Publishers
         self.text_pub = self.create_publisher(String, '/recognized_speech', 10)
@@ -48,19 +73,33 @@ class SpeechRecognitionNode(Node):
         if self.speech_available:
             # Speech recognition setup
             self.recognizer = sr.Recognizer()
-            self.microphone = sr.Microphone()
             
-            # Configuration
-            self.is_listening = False
-            self.recognition_language = 'en-US'  # Can be made configurable
-            self.energy_threshold = 300  # Adjustable sensitivity
-            self.pause_threshold = 0.8  # Seconds of silence before processing
-            
-            # Threading for non-blocking speech recognition
-            self.speech_queue = queue.Queue()
-            
-            # Parameters
-            self.declare_parameter('energy_threshold', self.energy_threshold)
+            # Try different microphone backends
+            try:
+                if AUDIO_BACKEND == 'sounddevice':
+                    # Use sounddevice backend
+                    self.microphone = sr.Microphone()
+                    self.get_logger().info("Using SoundDevice backend for audio")
+                else:
+                    # Default to pyaudio
+                    self.microphone = sr.Microphone()
+                    self.get_logger().info("Using PyAudio backend for audio")
+            except Exception as e:
+                self.get_logger().error(f"Failed to initialize microphone: {e}")
+                self.speech_available = False
+                
+            if self.speech_available:
+                # Configuration
+                self.is_listening = False
+                self.recognition_language = 'en-US'  # Can be made configurable
+                self.energy_threshold = 300  # Adjustable sensitivity
+                self.pause_threshold = 0.8  # Seconds of silence before processing
+                
+                # Threading for non-blocking speech recognition
+                self.speech_queue = queue.Queue()
+                
+                # Parameters
+                self.declare_parameter('energy_threshold', self.energy_threshold)
             self.declare_parameter('pause_threshold', self.pause_threshold)
             self.declare_parameter('language', self.recognition_language)
             

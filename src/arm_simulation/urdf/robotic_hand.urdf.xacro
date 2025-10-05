@@ -4,7 +4,7 @@
   <!-- Define some properties -->
   <xacro:property name="hand_width" value="0.08" />
   <xacro:property name="hand_length" value="0.12" />
-  <xacro:property name="hand_height" value="0.02" />
+  <xacro:property name="hand_height" value="0.01" />
   
   <xacro:property name="finger_width" value="0.015" />
   <xacro:property name="finger_length" value="0.03" />

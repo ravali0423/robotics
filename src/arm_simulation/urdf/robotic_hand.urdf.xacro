@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<robot name="robotic_hand" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Define some properties -->
+  <xacro:property name="hand_width" value="0.08" />
+  <xacro:property name="hand_length" value="0.12" />
+  <xacro:property name="hand_height" value="0.02" />
+  
+  <xacro:property name="finger_width" value="0.015" />
+  <xacro:property name="finger_length" value="0.03" />
+  <xacro:property name="finger_height" value="0.01" />
+  
+  <xacro:property name="thumb_width" value="0.018" />
+  <xacro:property name="thumb_length" value="0.025" />
+
+  <!-- Materials -->
+  <material name="hand_material">
+    <color rgba="0.8 0.6 0.4 1.0"/>
+  </material>
+  
+  <material name="finger_material">
+    <color rgba="0.7 0.5 0.3 1.0"/>
+  </material>
+
+  <!-- Base hand link -->
+  <link name="hand_base">
+    <visual>
+      <geometry>
+        <box size="${hand_length} ${hand_width} ${hand_height}"/>
+      </geometry>
+      <material name="hand_material"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${hand_length} ${hand_width} ${hand_height}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <!-- Finger macro -->
+  <xacro:macro name="finger" params="prefix x_pos y_pos rotation">
+    
+    <!-- Proximal phalanx (base of finger) -->
+    <link name="${prefix}_proximal">
+      <visual>
+        <geometry>
+          <box size="${finger_length} ${finger_width} ${finger_height}"/>
+        </geometry>
+        <material name="finger_material"/>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${finger_length} ${finger_width} ${finger_height}"/>
+        </geometry>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.05"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Middle phalanx -->
+    <link name="${prefix}_middle">
+      <visual>
+        <geometry>
+          <box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/>
+        </geometry>
+        <material name="finger_material"/>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/>
+        </geometry>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.03"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Distal phalanx (tip of finger) -->
+    <link name="${prefix}_distal">
+      <visual>
+        <geometry>
+          <box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/>
+        </geometry>
+        <material name="finger_material"/>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/>
+        </geometry>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.02"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Joints -->
+    <!-- Base joint connecting finger to hand -->
+    <joint name="${prefix}_base_joint" type="revolute">
+      <parent link="hand_base"/>
+      <child link="${prefix}_proximal"/>
+      <origin xyz="${x_pos} ${y_pos} ${hand_height/2 + finger_height/2}" rpy="0 0 ${rotation}"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <!-- Proximal-middle joint -->
+    <joint name="${prefix}_proximal_joint" type="revolute">
+      <parent link="${prefix}_proximal"/>
+      <child link="${prefix}_middle"/>
+      <origin xyz="${finger_length} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <!-- Middle-distal joint -->
+    <joint name="${prefix}_middle_joint" type="revolute">
+      <parent link="${prefix}_middle"/>
+      <child link="${prefix}_distal"/>
+      <origin xyz="${finger_length*0.8} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+  </xacro:macro>
+
+  <!-- Thumb macro (slightly different) -->
+  <xacro:macro name="thumb" params="prefix x_pos y_pos rotation">
+    
+    <!-- Proximal phalanx -->
+    <link name="${prefix}_proximal">
+      <visual>
+        <geometry>
+          <box size="${thumb_length} ${thumb_width} ${finger_height}"/>
+        </geometry>
+        <material name="finger_material"/>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${thumb_length} ${thumb_width} ${finger_height}"/>
+        </geometry>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.04"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Distal phalanx -->
+    <link name="${prefix}_distal">
+      <visual>
+        <geometry>
+          <box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/>
+        </geometry>
+        <material name="finger_material"/>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/>
+        </geometry>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.025"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Joints -->
+    <!-- Base joint -->
+    <joint name="${prefix}_base_joint" type="revolute">
+      <parent link="hand_base"/>
+      <child link="${prefix}_proximal"/>
+      <origin xyz="${x_pos} ${y_pos} ${hand_height/2 + finger_height/2}" rpy="0 0 ${rotation}"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <!-- Proximal-distal joint -->
+    <joint name="${prefix}_proximal_joint" type="revolute">
+      <parent link="${prefix}_proximal"/>
+      <child link="${prefix}_distal"/>
+      <origin xyz="${thumb_length} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+  </xacro:macro>
+
+  <!-- Instantiate the fingers -->
+  <!-- Thumb -->
+  <xacro:thumb prefix="thumb" x_pos="-0.02" y_pos="-0.035" rotation="-0.5"/>
+  
+  <!-- Index finger -->
+  <xacro:finger prefix="index" x_pos="0.045" y_pos="-0.025" rotation="0"/>
+  
+  <!-- Middle finger -->
+  <xacro:finger prefix="middle" x_pos="0.05" y_pos="-0.005" rotation="0"/>
+  
+  <!-- Ring finger -->
+  <xacro:finger prefix="ring" x_pos="0.045" y_pos="0.015" rotation="0"/>
+  
+  <!-- Pinky finger -->
+  <xacro:finger prefix="pinky" x_pos="0.035" y_pos="0.03" rotation="0"/>
+
+</robot>

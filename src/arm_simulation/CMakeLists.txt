@@ -9,7 +9,11 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(moveit_ros_planning_interface REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(robot_state_publisher REQUIRED)
+find_package(urdf REQUIRED)
+find_package(xacro REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -32,6 +36,17 @@ install(DIRECTORY
 install(DIRECTORY
   rviz/
   DESTINATION share/${PROJECT_NAME}/rviz
+)
+
+install(DIRECTORY
+  urdf/
+  DESTINATION share/${PROJECT_NAME}/urdf
+)
+
+# Install Python scripts
+install(PROGRAMS
+  scripts/hand_controller.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()

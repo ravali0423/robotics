@@ -22,6 +22,22 @@
     <color rgba="0.7 0.5 0.3 1.0"/>
   </material>
 
+  <!-- Base world link for proper orientation -->
+  <link name="world">
+    <visual>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="hand_material"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
   <!-- Base hand link -->
   <link name="hand_base">
     <visual>
@@ -43,6 +59,13 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </inertial>
   </link>
+
+  <!-- Joint to orient hand properly (rotate so palm faces camera) -->
+  <joint name="hand_orientation_joint" type="fixed">
+    <parent link="world"/>
+    <child link="hand_base"/>
+    <origin xyz="0 0 0.1" rpy="0 -1.5708 0"/>
+  </joint>
 
   <!-- Finger macro -->
   <xacro:macro name="finger" params="prefix x_pos y_pos rotation">

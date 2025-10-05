@@ -76,7 +76,7 @@
   </joint>
 
   <!-- Finger macro -->
-  <xacro:macro name="finger" params="prefix x_pos y_pos rotation">
+  <xacro:macro name="finger" params="prefix x_pos y_pos z_pos rotation">
     
     <!-- Proximal phalanx (base of finger) -->
     <link name="${prefix}_proximal">
@@ -149,7 +149,7 @@
     <joint name="${prefix}_base_joint" type="revolute">
       <parent link="hand_base"/>
       <child link="${prefix}_proximal"/>
-      <origin xyz="${x_pos} ${y_pos} ${hand_height/2 + finger_height/2}" rpy="0 0 ${rotation}"/>
+      <origin xyz="${x_pos} ${y_pos} ${z_pos}" rpy="0 0 ${rotation}"/>
       <axis xyz="0 0 1"/>
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
@@ -175,7 +175,7 @@
   </xacro:macro>
 
   <!-- Thumb macro (slightly different) -->
-  <xacro:macro name="thumb" params="prefix x_pos y_pos rotation">
+  <xacro:macro name="thumb" params="prefix x_pos y_pos z_pos rotation">
     
     <!-- Proximal phalanx -->
     <link name="${prefix}_proximal">
@@ -226,7 +226,7 @@
     <joint name="${prefix}_base_joint" type="revolute">
       <parent link="hand_base"/>
       <child link="${prefix}_proximal"/>
-      <origin xyz="${x_pos} ${y_pos} ${hand_height/2 + finger_height/2}" rpy="0 0 ${rotation}"/>
+      <origin xyz="${x_pos} ${y_pos} ${z_pos}" rpy="0 0 ${rotation}"/>
       <axis xyz="0 0 1"/>
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
@@ -243,19 +243,19 @@
   </xacro:macro>
 
   <!-- Instantiate the fingers -->
-  <!-- Thumb -->
-  <xacro:thumb prefix="thumb" x_pos="-0.02" y_pos="-0.035" rotation="-0.5"/>
+  <!-- Thumb (positioned on side of palm) -->
+  <xacro:thumb prefix="thumb" x_pos="0.00" y_pos="-0.030" z_pos="0.0" rotation="-0.7"/>
   
-  <!-- Index finger -->
-  <xacro:finger prefix="index" x_pos="0.045" y_pos="-0.025" rotation="0"/>
+  <!-- Index finger (positioned on front edge of palm, top surface) -->
+  <xacro:finger prefix="index" x_pos="0.055" y_pos="-0.030" z_pos="0.0" rotation="0"/>
   
-  <!-- Middle finger -->
-  <xacro:finger prefix="middle" x_pos="0.05" y_pos="-0.005" rotation="0"/>
+  <!-- Middle finger (positioned on front edge of palm, top surface, center) -->
+  <xacro:finger prefix="middle" x_pos="0.058" y_pos="-0.010" z_pos="0.0" rotation="0"/>
   
-  <!-- Ring finger -->
-  <xacro:finger prefix="ring" x_pos="0.045" y_pos="0.015" rotation="0"/>
+  <!-- Ring finger (positioned on front edge of palm, top surface) -->
+  <xacro:finger prefix="ring" x_pos="0.055" y_pos="0.010" z_pos="0.0" rotation="0"/>
   
-  <!-- Pinky finger -->
-  <xacro:finger prefix="pinky" x_pos="0.035" y_pos="0.03" rotation="0"/>
+  <!-- Pinky finger (positioned on front edge of palm, top surface) -->
+  <xacro:finger prefix="pinky" x_pos="0.050" y_pos="0.030" z_pos="0.0" rotation="0"/>
 
 </robot>

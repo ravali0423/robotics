@@ -28,6 +28,10 @@ class SpeechToGestureCoordinator(Node):
         self.sequence_control_pub = self.create_publisher(String, '/sequence_control', 10)
         self.system_status_pub = self.create_publisher(String, '/system_status', 10)
         
+        # Direct command publishers for enhanced hand controller
+        self.letter_command_pub = self.create_publisher(String, '/letter_command', 10)
+        self.gesture_command_pub = self.create_publisher(String, '/gesture_command', 10)
+        
         # Subscribers for receiving data from other nodes
         self.speech_text_sub = self.create_subscription(
             String, '/recognized_speech', self.speech_text_callback, 10)
@@ -56,7 +60,7 @@ class SpeechToGestureCoordinator(Node):
         # Configuration
         self.auto_start_listening = True
         self.gesture_timeout = 30.0  # seconds before returning to ready state
-        self.min_text_length = 2  # minimum characters to process
+        self.min_text_length = 1  # minimum characters to process (allow single letters)
         self.max_text_length = 200  # maximum characters to process
         
         # Text processing filters
@@ -209,12 +213,34 @@ class SpeechToGestureCoordinator(Node):
         # Stop current listening
         self.stop_listening()
         
-        # Send to gesture sequencer
-        msg = String()
-        msg.data = cleaned_text
-        self.text_sequence_pub.publish(msg)
-        
-        self.get_logger().info(f'Sent to gesture system: "{cleaned_text}"')
+        # Check if it's a single letter command
+        if len(cleaned_text) == 1 and cleaned_text.isalpha():
+            self.get_logger().info(f'Sending single letter: "{cleaned_text}"')
+            msg = String()
+            msg.data = cleaned_text
+            self.letter_command_pub.publish(msg)
+            
+            # Use threading timer for delayed restart
+            import threading
+            threading.Timer(3.0, self.restart_listening_after_letter).start()
+            
+        # Check for common gesture words
+        elif cleaned_text in ['hello', 'hi', 'goodbye', 'bye', 'thank you', 'thanks', 'please']:
+            self.get_logger().info(f'Sending gesture command: "{cleaned_text}"')
+            msg = String()
+            msg.data = cleaned_text
+            self.gesture_command_pub.publish(msg)
+            
+            # Use threading timer for delayed restart
+            import threading
+            threading.Timer(4.0, self.restart_listening_after_gesture).start()
+            
+        else:
+            # Send to gesture sequencer for word/phrase spelling
+            msg = String()
+            msg.data = cleaned_text
+            self.text_sequence_pub.publish(msg)
+            self.get_logger().info(f'Sent to gesture system: "{cleaned_text}"')
     
     def clean_text(self, text: str) -> str:
         """Clean and normalize text for gesture processing"""
@@ -374,6 +400,18 @@ class SpeechToGestureCoordinator(Node):
         self.get_logger().info(f'Current Gesture: {self.current_gesture}')
         self.get_logger().info(f'Last Text: "{self.last_recognized_text}"')
         self.get_logger().info('====================')
+    
+    def restart_listening_after_letter(self):
+        """Restart listening after a single letter gesture completes"""
+        self.get_logger().info('Letter gesture completed, restarting speech recognition...')
+        self.set_system_mode('ready')
+        self.start_listening()
+    
+    def restart_listening_after_gesture(self):
+        """Restart listening after a gesture command completes"""
+        self.get_logger().info('Gesture command completed, restarting speech recognition...')
+        self.set_system_mode('ready')
+        self.start_listening()
     
     def show_available_commands(self):
         """Show available user commands"""

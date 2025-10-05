@@ -3,10 +3,17 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Bool
-import speech_recognition as sr
 import threading
 import time
 import queue
+
+# Try to import speech recognition, provide fallback if not available
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
+    sr = None
 
 class SpeechRecognitionNode(Node):
     """
@@ -16,6 +23,15 @@ class SpeechRecognitionNode(Node):
     
     def __init__(self):
         super().__init__('speech_recognition_node')
+        
+        # Check if speech recognition is available
+        if not SPEECH_RECOGNITION_AVAILABLE:
+            self.get_logger().error("Speech recognition library not available!")
+            self.get_logger().error("Please install: pip install SpeechRecognition pyaudio")
+            self.get_logger().info("Running in text-only mode. Use /user_command to send text directly.")
+            self.speech_available = False
+        else:
+            self.speech_available = True
         
         # Publishers
         self.text_pub = self.create_publisher(String, '/recognized_speech', 10)
@@ -29,38 +45,42 @@ class SpeechRecognitionNode(Node):
             10
         )
         
-        # Speech recognition setup
-        self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone()
+        if self.speech_available:
+            # Speech recognition setup
+            self.recognizer = sr.Recognizer()
+            self.microphone = sr.Microphone()
+            
+            # Configuration
+            self.is_listening = False
+            self.recognition_language = 'en-US'  # Can be made configurable
+            self.energy_threshold = 300  # Adjustable sensitivity
+            self.pause_threshold = 0.8  # Seconds of silence before processing
+            
+            # Threading for non-blocking speech recognition
+            self.speech_queue = queue.Queue()
+            
+            # Parameters
+            self.declare_parameter('energy_threshold', self.energy_threshold)
+            self.declare_parameter('pause_threshold', self.pause_threshold)
+            self.declare_parameter('language', self.recognition_language)
+            
+            # Update parameters
+            self.energy_threshold = self.get_parameter('energy_threshold').value
+            self.pause_threshold = self.get_parameter('pause_threshold').value
+            self.recognition_language = self.get_parameter('language').value
+            
+            # Calibrate microphone
+            self.calibrate_microphone()
         
-        # Configuration
-        self.is_listening = False
-        self.recognition_language = 'en-US'  # Can be made configurable
-        self.energy_threshold = 300  # Adjustable sensitivity
-        self.pause_threshold = 0.8  # Seconds of silence before processing
-        
-        # Threading for non-blocking speech recognition
-        self.speech_queue = queue.Queue()
         self.recognition_thread = None
-        
-        # Parameters
-        self.declare_parameter('energy_threshold', self.energy_threshold)
-        self.declare_parameter('pause_threshold', self.pause_threshold)
-        self.declare_parameter('language', self.recognition_language)
         self.declare_parameter('auto_start', True)
-        
-        # Update parameters
-        self.energy_threshold = self.get_parameter('energy_threshold').value
-        self.pause_threshold = self.get_parameter('pause_threshold').value
-        self.recognition_language = self.get_parameter('language').value
         auto_start = self.get_parameter('auto_start').value
         
-        # Calibrate microphone
-        self.calibrate_microphone()
-        
-        # Auto-start listening if configured
-        if auto_start:
+        # Auto-start listening if configured and speech is available
+        if auto_start and self.speech_available:
             self.start_listening()
+        elif not self.speech_available:
+            self.get_logger().info("Speech recognition not available. System running in text-only mode.")
         
         self.get_logger().info('Speech Recognition Node initialized')
         self.get_logger().info(f'Language: {self.recognition_language}')
@@ -69,6 +89,9 @@ class SpeechRecognitionNode(Node):
     
     def calibrate_microphone(self):
         """Calibrate the microphone for ambient noise"""
+        if not self.speech_available:
+            return
+            
         self.get_logger().info('Calibrating microphone for ambient noise...')
         try:
             with self.microphone as source:
@@ -81,6 +104,10 @@ class SpeechRecognitionNode(Node):
     
     def control_callback(self, msg):
         """Handle start/stop commands for speech recognition"""
+        if not self.speech_available:
+            self.get_logger().warn('Speech recognition not available. Use /user_command for text input.')
+            return
+            
         if msg.data and not self.is_listening:
             self.start_listening()
         elif not msg.data and self.is_listening:
@@ -88,6 +115,10 @@ class SpeechRecognitionNode(Node):
     
     def start_listening(self):
         """Start continuous speech recognition"""
+        if not self.speech_available:
+            self.get_logger().warn('Speech recognition not available')
+            return
+            
         if self.is_listening:
             self.get_logger().warn('Already listening for speech')
             return

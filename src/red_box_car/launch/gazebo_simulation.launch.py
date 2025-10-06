@@ -80,7 +80,12 @@ def generate_launch_description():
     ros_gz_bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+            '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+            '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V'
+        ],
         output='screen',
         parameters=[{
             'use_sim_time': use_sim_time
@@ -109,5 +114,6 @@ def generate_launch_description():
     ld.add_action(spawn_car)
     ld.add_action(ros_gz_bridge)
     ld.add_action(camera_simulator)
+    # Note: keyboard_teleop should be run separately in a terminal
     
     return ld

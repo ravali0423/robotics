@@ -33,6 +33,7 @@ setup(
     entry_points={
         'console_scripts': [
             'camera_simulator = red_box_car.camera_simulator:main',
+            'keyboard_teleop = red_box_car.keyboard_teleop:main',
         ],
     },
 )

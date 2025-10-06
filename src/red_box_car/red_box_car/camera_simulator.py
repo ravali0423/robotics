@@ -54,12 +54,18 @@ class CameraSimulator(Node):
         cv2.putText(background, 'Red Box Car Camera Simulator', 
                    (10, 460), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-        # Add a red box in the scene for visual interest
-        box_x = int(200 + 100 * np.cos(self.frame_count * 0.02))
-        box_y = int(200 + 50 * np.sin(self.frame_count * 0.04))
-        cv2.rectangle(background, (box_x, box_y), (box_x + 80, box_y + 60), (0, 0, 255), -1)
-        cv2.putText(background, 'RED BOX', (box_x + 5, box_y + 35), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        # Add floor line to show ground reference
+        floor_y = 400
+        cv2.line(background, (0, floor_y), (width, floor_y), (100, 200, 100), 2)
+        cv2.putText(background, 'Floor', (10, floor_y - 10), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (100, 200, 100), 1)
+        
+        # Add a red box in the scene for visual interest (smaller, in background)
+        box_x = int(450 + 50 * np.cos(self.frame_count * 0.02))
+        box_y = int(150 + 30 * np.sin(self.frame_count * 0.04))
+        cv2.rectangle(background, (box_x, box_y), (box_x + 60, box_y + 45), (0, 0, 255), -1)
+        cv2.putText(background, 'RED BOX', (box_x + 5, box_y + 25), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
         
         # Convert OpenCV image to ROS Image message
         ros_image = self.bridge.cv2_to_imgmsg(background, encoding='bgr8')

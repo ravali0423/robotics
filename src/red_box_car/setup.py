@@ -17,6 +17,7 @@ setup(
         (os.path.join('share', package_name, 'urdf'), glob(os.path.join('urdf', '*.urdf'))),
         (os.path.join('share', package_name, 'urdf'), glob(os.path.join('urdf', '*.xacro'))),
         (os.path.join('share', package_name, 'meshes'), glob(os.path.join('meshes', '*'))),
+        (os.path.join('share', package_name, 'worlds'), glob(os.path.join('worlds', '*.sdf'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

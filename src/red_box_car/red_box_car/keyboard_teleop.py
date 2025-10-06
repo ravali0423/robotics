@@ -16,8 +16,8 @@ class KeyboardTeleop(Node):
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         
         # Movement parameters
-        self.linear_speed = 1.0   # m/s
-        self.angular_speed = 1.0  # rad/s
+        self.linear_speed = 2.0   # m/s (increased from 1.0)
+        self.angular_speed = 2.0  # rad/s (increased from 1.0)
         self.speed_increment = 0.1
         
         # Key bindings
@@ -124,7 +124,7 @@ Current speeds:
                     angular_vel = angular_factor * self.angular_speed
                     
                     self.publish_twist(linear_vel, angular_vel)
-                    self.get_logger().info(f'Moving: linear={linear_vel:.2f}, angular={angular_vel:.2f}')
+                    self.get_logger().info(f'Key pressed: {key} -> Moving: linear={linear_vel:.2f}, angular={angular_vel:.2f}')
                 elif key in self.speed_bindings:
                     linear_factor, angular_factor = self.speed_bindings[key]
                     self.linear_speed *= linear_factor
@@ -138,7 +138,7 @@ Current speeds:
                     # Stop the car after speed change
                     self.publish_twist(0.0, 0.0)
                 elif key != '':
-                    self.get_logger().warn(f'Unknown key: {key}')
+                    self.get_logger().warn(f'Unknown key pressed: "{key}" (ASCII: {ord(key) if len(key)==1 else "multi-char"})')
                 
         except Exception as e:
             self.get_logger().error(f'Error in teleop: {e}')

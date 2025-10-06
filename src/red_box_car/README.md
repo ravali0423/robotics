@@ -154,3 +154,9 @@ For real robot deployment:
 - Add multiple object detection
 - Improve gripper force feedback
 - Add voice commands or GUI interface
+
+colcon build --packages-select red_box_car
+
+ros2 launch red_box_car gazebo_simulation.launch.py
+
+ros2 run red_box_car keyboard_teleop

@@ -82,7 +82,6 @@ def generate_launch_description():
         executable='parameter_bridge',
         arguments=[
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
             '/odom@nav_msgs/msg/Odometry@gz.msgs.Odometry',
             '/tf@tf2_msgs/msg/TFMessage@gz.msgs.Pose_V'
         ],
@@ -114,6 +113,5 @@ def generate_launch_description():
     ld.add_action(spawn_car)
     ld.add_action(ros_gz_bridge)
     ld.add_action(camera_simulator)
-    # Note: keyboard_teleop should be run separately in a terminal
     
     return ld

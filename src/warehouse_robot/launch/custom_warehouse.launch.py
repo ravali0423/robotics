@@ -103,8 +103,8 @@ def generate_launch_description():
                 package='ros_gz_bridge',
                 executable='parameter_bridge',
                 arguments=[
-                    '/diff_drive/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
-                    '/diff_drive/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
+                    '/model/warehouse_car/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+                    '/model/warehouse_car/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
                     '/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'
                 ],
                 output='screen'

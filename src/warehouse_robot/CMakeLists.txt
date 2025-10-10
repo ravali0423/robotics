@@ -15,7 +15,14 @@ install(DIRECTORY
   worlds
   rviz
   config
+  models
   DESTINATION share/${PROJECT_NAME}/
+)
+
+# Install Python scripts
+install(PROGRAMS
+  scripts/car_controller.py
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)

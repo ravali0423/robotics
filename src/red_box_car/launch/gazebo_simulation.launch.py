@@ -102,6 +102,50 @@ def generate_launch_description():
         }]
     )
 
+    # Red Box Spawner Node
+    red_box_spawner = Node(
+        package='red_box_car',
+        executable='red_box_spawner',
+        name='red_box_spawner',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }]
+    )
+
+    # Red Box Tracker Node
+    red_box_tracker = Node(
+        package='red_box_car',
+        executable='red_box_tracker',
+        name='red_box_tracker',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }]
+    )
+
+    # Navigation Controller Node
+    navigation_controller = Node(
+        package='red_box_car',
+        executable='navigation_controller',
+        name='navigation_controller',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }]
+    )
+
+    # Pickup Controller Node
+    pickup_controller = Node(
+        package='red_box_car',
+        executable='pickup_controller',
+        name='pickup_controller',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }]
+    )
+
     # Create the launch description and populate
     ld = LaunchDescription()
     
@@ -113,5 +157,9 @@ def generate_launch_description():
     ld.add_action(spawn_car)
     ld.add_action(ros_gz_bridge)
     ld.add_action(camera_simulator)
+    ld.add_action(red_box_spawner)
+    ld.add_action(red_box_tracker)
+    ld.add_action(navigation_controller)
+    ld.add_action(pickup_controller)
     
     return ld

@@ -33,6 +33,11 @@ setup(
     entry_points={
         'console_scripts': [
             'camera_simulator = red_box_car.camera_simulator:main',
+            'red_box_spawner = red_box_car.red_box_spawner:main',
+            'red_box_tracker = red_box_car.red_box_tracker:main',
+            'navigation_controller = red_box_car.navigation_controller:main',
+            'pickup_controller = red_box_car.pickup_controller:main',
+            'pickup_test = red_box_car.pickup_test:main',
         ],
     },
 )

@@ -61,25 +61,14 @@ colcon build --symlink-install
 source install/setup.bash
 ```
 
-## 🚀 Quick Start
-
-### Option 1: UR5 Robot Arm Simulation
-
-1. **Run the UR5 simulation**:
-   ```bash
-   cd ~/ros2_ws
-   ./launch_arm_sim.sh
-   ```
-
-The script will automatically install dependencies, build workspace, and launch the UR5 simulation.
-
-### Option 2: Robotic Hand Finger Counting
+### Option 1: Robotic Hand Finger Counting
 
 1. **Launch the robotic hand simulation**:
    ```bash
    cd ~/ros2_ws
    source install/setup.bash
    ros2 launch arm_simulation robotic_hand.launch.py
+   ros2 launch arm_simulation speech_to_gesture.launch.py
    ```
 
 2. **Control finger count** (in a new terminal):
@@ -105,30 +94,6 @@ The script will automatically install dependencies, build workspace, and launch 
    # Close hand (fist)
    ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 0" --once
    ```
-
-## 🎮 Robotic Hand Topic Commands
-
-### Finger Count Topic: `/finger_count`
-**Message Type:** `std_msgs/msg/Int32`
-
-| Command | Fingers Shown | Description |
-|---------|---------------|-------------|
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 0" --once` | 0 | Closed fist |
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 1" --once` | 1 | Index finger only |
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 2" --once` | 2 | Index + middle |
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 3" --once` | 3 | Index + middle + ring |
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 4" --once` | 4 | All except thumb |
-| `ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 5" --once` | 5 | Open hand (all fingers) |
-
-### Quick Test Sequence
-```bash
-# Test all finger counts in sequence
-for i in {0..5}; do
-  echo "Showing $i finger(s)..."
-  ros2 topic pub /finger_count std_msgs/msg/Int32 "data: $i" --once
-  sleep 2
-done
-```
 
 ## 📁 Project Structure
 
@@ -359,17 +324,4 @@ ros2 node info /hand_controller
 
 
 
-cd /home/ravali/ros2_ws
-source install/setup.bash
-ros2 launch warehouse_robot warehouse_simulation.launch.py
-
-
-# Move to predefined locations
-ros2 run warehouse_robot move_robot center
-ros2 run warehouse_robot move_robot corner1
-ros2 run warehouse_robot move_robot wall1
-ros2 run warehouse_robot move_robot front
-
-# Move to custom coordinates
-ros2 run warehouse_robot move_robot '{"x": 3.0, "y": -2.0}'
-ros2 run warehouse_robot move_robot '{"x": -5.0, "y": 4.0}'
+Craete a new package called warehouse_robot. Use an existing car urdf file and place it on top of a ground plane in the world. The car has to drop from a height onto the plane and the ground should have collision detection and should not fall down in the world ans should stay static in the world. I want to use Gazebo sim

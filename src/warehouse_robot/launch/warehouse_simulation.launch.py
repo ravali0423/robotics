@@ -53,6 +53,13 @@ def generate_launch_description():
         output='screen'
     )
     
+    # Robot controller node
+    robot_controller = Node(
+        package='warehouse_robot',
+        executable='robot_controller',
+        output='screen'
+    )
+    
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -62,5 +69,6 @@ def generate_launch_description():
         
         set_model_path,
         gazebo_launch,
-        bridge
+        bridge,
+        robot_controller
     ])

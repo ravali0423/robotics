@@ -356,3 +356,20 @@ ros2 node info /hand_controller
 ---
 
 **Happy robotics simulation! 🤖🖐️👍**
+
+
+
+cd /home/ravali/ros2_ws
+source install/setup.bash
+ros2 launch warehouse_robot warehouse_simulation.launch.py
+
+
+# Move to predefined locations
+ros2 run warehouse_robot move_robot center
+ros2 run warehouse_robot move_robot corner1
+ros2 run warehouse_robot move_robot wall1
+ros2 run warehouse_robot move_robot front
+
+# Move to custom coordinates
+ros2 run warehouse_robot move_robot '{"x": 3.0, "y": -2.0}'
+ros2 run warehouse_robot move_robot '{"x": -5.0, "y": 4.0}'

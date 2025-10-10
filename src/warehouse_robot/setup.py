@@ -30,6 +30,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'robot_controller = warehouse_robot.robot_controller:main',
+            'move_robot = warehouse_robot.move_robot:main',
         ],
     },
 )

@@ -17,6 +17,10 @@ ros2 run warehouse_robot robot_controller.py return    # Return to start positio
 ros2 run warehouse_robot robot_controller.py mission   # Execute full pickup → deliver → return sequence
 ros2 run warehouse_robot robot_controller.py status    # Show current robot status
 
+# 🎯 Move to specific XY coordinates:
+ros2 run warehouse_robot robot_controller.py goto 2.0 3.0    # Move to X=2.0, Y=3.0
+ros2 run warehouse_robot robot_controller.py goto -1.5 4.2   # Move to X=-1.5, Y=4.2
+
 # 🎮 Manual Control Options:
 # Move forward
 ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}}" --once
@@ -29,6 +33,26 @@ ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{angular: {
 
 # Stop
 ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{}" --once
+
+# Move to specific XY coordinates (autonomous navigation):
+# This uses the robot controller to navigate to any XY location
+python3 -c "
+import rclpy
+from warehouse_robot.scripts.robot_controller import WarehouseRobotController
+rclpy.init()
+controller = WarehouseRobotController()
+controller.move_to_target(2.0, 3.0)  # Move to X=2.0, Y=3.0
+controller.destroy_node()
+rclpy.shutdown()
+"
+
+# Alternative: Direct cmd_vel for manual XY movement (requires manual calculation)
+# For X=2.0, Y=3.0 from origin, calculate angle and distance first:
+# Distance = sqrt(2²+3²) = 3.61, Angle = atan2(3,2) = 0.98 rad
+# First rotate to face target, then move forward
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{angular: {z: 0.98}}" --once
+# Wait, then move forward
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}}" --once
 
 # 🕹️ Basic Car Controller (Original):
 source install/setup.bash

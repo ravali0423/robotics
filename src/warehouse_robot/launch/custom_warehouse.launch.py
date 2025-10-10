@@ -32,6 +32,8 @@ def read_waypoints():
         return {
             'START_X': 0.0,
             'START_Y': 0.0,
+            'PACKAGE_X': 2.0,
+            'PACKAGE_Y': 2.0,
             'DEST_X': 5.0,
             'DEST_Y': 5.0
         }

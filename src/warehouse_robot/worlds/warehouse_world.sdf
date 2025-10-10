@@ -286,7 +286,7 @@
 
   <model name="start_marker">
       <static>true</static>
-      <pose>0.12988790177324105 -6.317211426950027 0.1 0 0 0</pose>
+      <pose>-2.29819224275205 7.432108374127868 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -311,9 +311,36 @@
           </geometry>
         </collision>
       </link>
+    </model><model name="package_marker">
+      <static>true</static>
+      <pose>0.59821125140299 -1.4232832680571725 0.1 0 0 0</pose>
+      <link name="marker_link">
+        <visual name="marker_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>0.7 0.7 0.7 1.0</ambient>
+            <diffuse>0.7 0.7 0.7 1.0</diffuse>
+            <specular>0.2 0.2 0.2 1.0</specular>
+            <emissive>0.1 0.1 0.1 1.0</emissive>
+          </material>
+        </visual>
+        <collision name="marker_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
     </model><model name="destination_marker">
       <static>true</static>
-      <pose>-0.41695374888096026 -1.7318144811576417 0.1 0 0 0</pose>
+      <pose>-0.7273167069103739 4.203515464322436 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -336,6 +363,46 @@
               <length>0.2</length>
             </cylinder>
           </geometry>
+        </collision>
+      </link>
+    </model><model name="pickup_package">
+      <static>false</static>
+      <pose>0.59821125140299 -1.4232832680571725 0.5 0 0 0</pose>
+      <link name="package_link">
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.02</ixx>
+            <iyy>0.02</iyy>
+            <izz>0.02</izz>
+          </inertia>
+        </inertial>
+        <visual name="package_visual">
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1.0</ambient>
+            <diffuse>0.5 0.5 0.5 1.0</diffuse>
+            <specular>0.3 0.3 0.3 1.0</specular>
+          </material>
+        </visual>
+        <collision name="package_collision">
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
         </collision>
       </link>
     </model></world>

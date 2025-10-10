@@ -15,6 +15,8 @@ def read_waypoints():
                 key, value = line.strip().split('=')
                 if 'START' in key:
                     print(f"🟢 {key}: {value}")
+                elif 'PACKAGE' in key:
+                    print(f"📦 {key}: {value}")
                 else:
                     print(f"🔴 {key}: {value}")
         print("=" * 30)

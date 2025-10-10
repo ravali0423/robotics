@@ -22,6 +22,7 @@ install(DIRECTORY
 # Install Python scripts
 install(PROGRAMS
   scripts/car_controller.py
+  scripts/robot_controller.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

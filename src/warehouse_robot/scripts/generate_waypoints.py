@@ -26,8 +26,8 @@ class WarehouseWaypointGenerator:
             {"min_x": -9.0, "max_x": -7.0, "min_y": -2.5, "max_y": 2.5}
         ]
         
-        # Minimum distance between start and destination
-        self.min_distance = 3.0
+        # Minimum distance between waypoints
+        self.min_distance = 2.5
         
     def is_point_in_obstacle(self, x, y):
         """Check if a point is inside any obstacle area."""
@@ -55,24 +55,32 @@ class WarehouseWaypointGenerator:
         return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
     
     def generate_waypoints(self):
-        """Generate start and destination points with minimum distance."""
+        """Generate start, package, and destination points with minimum distances."""
         max_attempts = 100
         
         for _ in range(max_attempts):
             start_x, start_y = self.generate_valid_point()
+            package_x, package_y = self.generate_valid_point()
             dest_x, dest_y = self.generate_valid_point()
             
-            distance = self.calculate_distance(start_x, start_y, dest_x, dest_y)
+            # Check distances between all points
+            start_to_package = self.calculate_distance(start_x, start_y, package_x, package_y)
+            package_to_dest = self.calculate_distance(package_x, package_y, dest_x, dest_y)
+            start_to_dest = self.calculate_distance(start_x, start_y, dest_x, dest_y)
             
-            if distance >= self.min_distance:
+            if (start_to_package >= self.min_distance and 
+                package_to_dest >= self.min_distance and 
+                start_to_dest >= self.min_distance):
                 return {
                     "start": {"x": start_x, "y": start_y},
+                    "package": {"x": package_x, "y": package_y},
                     "destination": {"x": dest_x, "y": dest_y}
                 }
         
         # Fallback waypoints if generation fails
         return {
             "start": {"x": -5.0, "y": -5.0},
+            "package": {"x": 0.0, "y": 0.0},
             "destination": {"x": 5.0, "y": 5.0}
         }
     
@@ -81,9 +89,89 @@ class WarehouseWaypointGenerator:
         if color == "green":
             ambient = "0.0 1.0 0.0 1.0"
             diffuse = "0.0 1.0 0.0 1.0"
-        else:  # red
+        elif color == "red":
             ambient = "1.0 0.0 0.0 1.0"
             diffuse = "1.0 0.0 0.0 1.0"
+        else:  # gray for package location
+            ambient = "0.7 0.7 0.7 1.0"
+            diffuse = "0.7 0.7 0.7 1.0"
+            
+        marker_sdf = f'''
+    <model name="{name}_marker">
+      <static>true</static>
+      <pose>{x} {y} 0.1 0 0 0</pose>
+      <link name="marker_link">
+        <visual name="marker_visual">
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>{ambient}</ambient>
+            <diffuse>{diffuse}</diffuse>
+            <specular>0.2 0.2 0.2 1.0</specular>
+            <emissive>0.1 0.1 0.1 1.0</emissive>
+          </material>
+        </visual>
+        <collision name="marker_collision">
+          <geometry>
+            <cylinder>
+              <radius>0.3</radius>
+              <length>0.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+      </link>
+    </model>'''
+        return marker_sdf
+    
+    def create_package_sdf(self, x, y):
+        """Create SDF XML for the pickup package box."""
+        package_sdf = f'''
+    <model name="pickup_package">
+      <static>false</static>
+      <pose>{x} {y} 0.5 0 0 0</pose>
+      <link name="package_link">
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.02</ixx>
+            <iyy>0.02</iyy>
+            <izz>0.02</izz>
+          </inertia>
+        </inertial>
+        <visual name="package_visual">
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1.0</ambient>
+            <diffuse>0.5 0.5 0.5 1.0</diffuse>
+            <specular>0.3 0.3 0.3 1.0</specular>
+          </material>
+        </visual>
+        <collision name="package_collision">
+          <geometry>
+            <box>
+              <size>0.3 0.3 0.3</size>
+            </box>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+      </link>
+    </model>'''
+        return package_sdf
             
         marker_sdf = f'''
     <model name="{name}_marker">
@@ -117,7 +205,7 @@ class WarehouseWaypointGenerator:
         return marker_sdf
     
     def update_world_file(self, world_file_path, waypoints):
-        """Update the SDF world file with waypoint markers."""
+        """Update the SDF world file with waypoint markers and package."""
         try:
             # Read the current world file
             tree = ET.parse(world_file_path)
@@ -129,9 +217,10 @@ class WarehouseWaypointGenerator:
                 print("Error: Could not find world element in SDF file")
                 return False
             
-            # Remove existing waypoint markers if they exist
+            # Remove existing waypoint markers and package if they exist
             for model in world.findall('model'):
-                if model.get('name') and ('_marker' in model.get('name')):
+                model_name = model.get('name')
+                if model_name and ('_marker' in model_name or model_name == 'pickup_package'):
                     world.remove(model)
             
             # Create start marker (green)
@@ -143,6 +232,15 @@ class WarehouseWaypointGenerator:
             ))
             world.append(start_marker)
             
+            # Create package marker (gray)
+            package_marker = ET.fromstring(self.create_marker_sdf(
+                "package", 
+                waypoints["package"]["x"], 
+                waypoints["package"]["y"], 
+                "gray"
+            ))
+            world.append(package_marker)
+            
             # Create destination marker (red)
             dest_marker = ET.fromstring(self.create_marker_sdf(
                 "destination", 
@@ -152,11 +250,19 @@ class WarehouseWaypointGenerator:
             ))
             world.append(dest_marker)
             
+            # Create pickup package box
+            package_box = ET.fromstring(self.create_package_sdf(
+                waypoints["package"]["x"], 
+                waypoints["package"]["y"]
+            ))
+            world.append(package_box)
+            
             # Write the updated file
             tree.write(world_file_path, encoding='utf-8', xml_declaration=True)
             
             print(f"✅ Updated waypoints:")
             print(f"   🟢 Start: ({waypoints['start']['x']:.2f}, {waypoints['start']['y']:.2f})")
+            print(f"   📦 Package: ({waypoints['package']['x']:.2f}, {waypoints['package']['y']:.2f})")
             print(f"   🔴 Destination: ({waypoints['destination']['x']:.2f}, {waypoints['destination']['y']:.2f})")
             
             return True
@@ -171,6 +277,8 @@ class WarehouseWaypointGenerator:
             with open(output_file, 'w') as f:
                 f.write(f"START_X={waypoints['start']['x']:.3f}\n")
                 f.write(f"START_Y={waypoints['start']['y']:.3f}\n")
+                f.write(f"PACKAGE_X={waypoints['package']['x']:.3f}\n")
+                f.write(f"PACKAGE_Y={waypoints['package']['y']:.3f}\n")
                 f.write(f"DEST_X={waypoints['destination']['x']:.3f}\n")
                 f.write(f"DEST_Y={waypoints['destination']['y']:.3f}\n")
             return True

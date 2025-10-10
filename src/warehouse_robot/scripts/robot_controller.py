@@ -75,6 +75,15 @@ class WarehouseRobotController(Node):
             2.0 * (orientation.w * orientation.z + orientation.x * orientation.y),
             1.0 - 2.0 * (orientation.y * orientation.y + orientation.z * orientation.z)
         )
+        
+        # Log position updates (less frequently)
+        if hasattr(self, '_odom_count'):
+            self._odom_count += 1
+        else:
+            self._odom_count = 1
+        
+        if self._odom_count % 50 == 0:  # Log every 50th message to avoid spam
+            self.get_logger().info(f"📍 Odometry update: pos=({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw={self.current_position['yaw']:.2f})")
     
     def calculate_distance(self, target_x, target_y):
         """Calculate distance to target point."""
@@ -118,15 +127,22 @@ class WarehouseRobotController(Node):
             # Create velocity command
             twist = Twist()
             
+            # Log current state for debugging
+            self.get_logger().info(f"🔍 Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
+            self.get_logger().info(f"🎯 Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
+            
             # If we need to turn significantly, prioritize rotation
             if abs(angle_diff) > self.angle_tolerance:
                 twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
                 twist.linear.x = 0.5 if abs(angle_diff) < 1.0 else 0.0  # Slow forward while turning
+                self.get_logger().info(f"🔄 Turning: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
             else:
                 # Move forward
                 twist.linear.x = min(self.linear_speed, distance * 2.0)  # Slow down when close
                 twist.angular.z = angle_diff * 2.0  # Fine-tune direction
+                self.get_logger().info(f"➡️ Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
             
+            self.get_logger().info(f"📤 Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
             self.cmd_vel_publisher.publish(twist)
             rate.sleep()
     

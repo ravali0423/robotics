@@ -286,7 +286,7 @@
 
   <model name="start_marker">
       <static>true</static>
-      <pose>-2.29819224275205 7.432108374127868 0.1 0 0 0</pose>
+      <pose>5.708506056266327 -1.8998700493794534 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -313,7 +313,7 @@
       </link>
     </model><model name="package_marker">
       <static>true</static>
-      <pose>0.59821125140299 -1.4232832680571725 0.1 0 0 0</pose>
+      <pose>-7.427413727065497 -2.864101128350935 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -340,7 +340,7 @@
       </link>
     </model><model name="destination_marker">
       <static>true</static>
-      <pose>-0.7273167069103739 4.203515464322436 0.1 0 0 0</pose>
+      <pose>4.526039341484578 5.09815887861968 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -367,7 +367,7 @@
       </link>
     </model><model name="pickup_package">
       <static>false</static>
-      <pose>0.59821125140299 -1.4232832680571725 0.5 0 0 0</pose>
+      <pose>-7.427413727065497 -2.864101128350935 0.5 0 0 0</pose>
       <link name="package_link">
         <inertial>
           <mass>0.5</mass>

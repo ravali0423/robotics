@@ -16,6 +16,7 @@ ros2 run warehouse_robot robot_controller.py deliver   # Deliver package to dest
 ros2 run warehouse_robot robot_controller.py return    # Return to start position
 ros2 run warehouse_robot robot_controller.py mission   # Execute full pickup → deliver → return sequence
 ros2 run warehouse_robot robot_controller.py status    # Show current robot status
+ros2 run warehouse_robot robot_controller.py stop      # Stop the robot immediately
 
 # 🎯 Move to specific XY coordinates:
 ros2 run warehouse_robot robot_controller.py goto 2.0 3.0    # Move to X=2.0, Y=3.0

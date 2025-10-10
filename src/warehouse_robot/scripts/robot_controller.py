@@ -115,15 +115,22 @@ class WarehouseRobotController(Node):
         self.get_logger().info(f"🎯 Moving to ({target_x:.2f}, {target_y:.2f})")
         
         rate = self.create_rate(10)  # 10 Hz
+        max_iterations = 1000  # Safety limit to prevent infinite loops
+        iteration_count = 0
         
-        while True:
+        while rclpy.ok() and iteration_count < max_iterations:
+            iteration_count += 1
+            
+            # Process ROS callbacks to get latest odometry
+            rclpy.spin_once(self, timeout_sec=0.01)
+            
             # Calculate distance and angle to target
             distance = self.calculate_distance(target_x, target_y)
             
             if distance < self.position_tolerance:
                 self.stop_robot()
                 self.get_logger().info(f"✅ Reached target ({target_x:.2f}, {target_y:.2f})")
-                break
+                return  # Exit function completely
             
             # Calculate angle to target
             target_angle = self.calculate_angle_to_target(target_x, target_y)
@@ -149,23 +156,24 @@ class WarehouseRobotController(Node):
             
             self.get_logger().info(f"📤 Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
             
-            # Ensure message is published
-            for i in range(3):  # Try publishing multiple times
-                self.cmd_vel_publisher.publish(twist)
-                rclpy.spin_once(self, timeout_sec=0.01)  # Process any pending callbacks
+            # Publish the command
+            self.cmd_vel_publisher.publish(twist)
             
             rate.sleep()
+        
+        # Safety: Always stop at the end if we exit the loop without reaching target
+        self.stop_robot()
+        self.get_logger().warn(f"⚠️  Movement loop ended without reaching target. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
     
     def stop_robot(self):
         """Stop the robot."""
-        twist = Twist()
+        twist = Twist()  # All values default to 0.0
         self.get_logger().info("🛑 Stopping robot...")
         
         # Send stop command multiple times to ensure it's received
-        for i in range(5):
+        for i in range(10):
             self.cmd_vel_publisher.publish(twist)
-            rclpy.spin_once(self, timeout_sec=0.01)
-            time.sleep(0.1)
+            time.sleep(0.05)  # Small delay between commands
         
         self.get_logger().info("✅ Stop command sent")
     
@@ -308,6 +316,7 @@ def main():
         print("  mission    - Execute full pickup and delivery mission")
         print("  status     - Show current robot status")
         print("  goto X Y   - Move to specific coordinates (e.g., goto 2.0 3.0)")
+        print("  stop       - Stop the robot immediately")
         print("\nUsage: ros2 run warehouse_robot robot_controller.py <command> [args]")
         return
     
@@ -327,6 +336,9 @@ def main():
             controller.run_full_mission()
         elif command == "status":
             controller.print_status()
+        elif command == "stop":
+            controller.stop_robot()
+            controller.get_logger().info("🛑 Robot stopped by user command")
         elif command == "goto":
             if len(sys.argv) < 4:
                 print("❌ Usage: goto <x> <y>")

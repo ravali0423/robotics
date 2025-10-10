@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Custom warehouse simulation using our warehouse world and diff_drive car.
-Car automatically spawns at center and falls from height.
+Generates random start/destination waypoints and spawns car at start position.
 """
 
 import os
+import subprocess
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -12,26 +13,58 @@ from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
+def read_waypoints():
+    """Read generated waypoints from file."""
+    waypoints_file = "/home/ravali/ros2_ws/src/warehouse_robot/scripts/waypoints.txt"
+    waypoints = {}
+    
+    try:
+        with open(waypoints_file, 'r') as f:
+            for line in f:
+                key, value = line.strip().split('=')
+                waypoints[key] = float(value)
+        return waypoints
+    except Exception as e:
+        print(f"Warning: Could not read waypoints file: {e}")
+        # Return default values
+        return {
+            'START_X': 0.0,
+            'START_Y': 0.0,
+            'DEST_X': 5.0,
+            'DEST_Y': 5.0
+        }
+
+
 def generate_launch_description():
+    # Read existing waypoints (don't generate new ones)
+    print("📍 Reading existing waypoints...")
+    
+    # Read the existing waypoints
+    waypoints = read_waypoints()
+    spawn_x = waypoints.get('START_X', 0.0)
+    spawn_y = waypoints.get('START_Y', 0.0)
+    
+    print(f"🚗 Car will spawn at start position: ({spawn_x:.2f}, {spawn_y:.2f})")
+    
     # Package paths
     warehouse_robot_pkg = FindPackageShare('warehouse_robot')
     
-    # Launch arguments
+    # Launch arguments (with dynamic defaults from waypoints)
     spawn_x_arg = DeclareLaunchArgument(
         'spawn_x',
-        default_value='0.0',
-        description='X position to spawn robot (center of warehouse)'
+        default_value=str(spawn_x),
+        description='X position to spawn robot (start waypoint)'
     )
     
     spawn_y_arg = DeclareLaunchArgument(
         'spawn_y',
-        default_value='0.0',
-        description='Y position to spawn robot (center of warehouse)'
+        default_value=str(spawn_y),
+        description='Y position to spawn robot (start waypoint)'
     )
     
     spawn_z_arg = DeclareLaunchArgument(
         'spawn_z',
-        default_value='3.0',
+        default_value='5.0',
         description='Height to spawn robot for drop test'
     )
 
@@ -84,8 +117,8 @@ def generate_launch_description():
                     'name: "warehouse_car", '
                     'pose: {'
                     '  position: {'
-                    '    x: 0.0, '
-                    '    y: 0.0, '
+                    f'    x: {spawn_x}, '
+                    f'    y: {spawn_y}, '
                     '    z: 5.0'
                     '  }'
                     '}'

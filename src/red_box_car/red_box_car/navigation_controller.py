@@ -18,13 +18,16 @@ class NavigationController(Node):
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         self.navigation_status_pub = self.create_publisher(String, '/navigation_status', 10)
         
-        # Subscribers
-        self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
+        # Subscribers - Remove problematic odometry subscription for now
+        # self.odom_sub = self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
         self.navigation_command_sub = self.create_subscription(String, '/navigation_command', self.navigation_command_callback, 10)
         self.target_position_sub = self.create_subscription(Point, '/target_position', self.target_position_callback, 10)
         
-        # Internal state
-        self.current_pose = Pose()
+        # Internal state - Use simulated position for now
+        self.current_pose = None  # Will use simulated starting position
+        self.simulated_x = 0.0    # Simulated robot position
+        self.simulated_y = 0.0
+        self.simulated_yaw = 0.0
         self.target_position = Point()
         self.navigation_active = False
         self.navigation_goal_reached = False
@@ -39,12 +42,26 @@ class NavigationController(Node):
         # Control timer
         self.control_timer = self.create_timer(0.1, self.control_loop)
         
+        # Initialize simulated pose after a short delay
+        self.init_timer = self.create_timer(1.0, self.initialize_pose)
+        
         self.get_logger().info("Navigation Controller started")
     
-    def odom_callback(self, msg):
-        """Update current pose from odometry"""
+    def initialize_pose(self):
+        """Initialize simulated pose after startup"""
         with self.lock:
-            self.current_pose = msg.pose.pose
+            # Assume robot starts at origin
+            self.simulated_x = 0.0
+            self.simulated_y = 0.0
+            self.simulated_yaw = 0.0
+        
+        self.get_logger().info("Initialized simulated pose at origin")
+        self.init_timer.destroy()  # Only run once
+    
+    def odom_callback(self, msg):
+        """Update current pose from odometry - DISABLED for now"""
+        # Commented out to avoid the problematic odometry subscription
+        pass
     
     def navigation_command_callback(self, msg):
         """Handle navigation commands"""
@@ -108,49 +125,72 @@ class NavigationController(Node):
     
     def control_loop(self):
         """Main control loop for navigation"""
-        with self.lock:
-            if not self.navigation_active or self.navigation_goal_reached:
+        try:
+            with self.lock:
+                if not self.navigation_active or self.navigation_goal_reached:
+                    return
+                
+                # Use simulated position instead of odometry
+                current_x = self.simulated_x
+                current_y = self.simulated_y
+                current_yaw = self.simulated_yaw
+                target_pos = self.target_position
+            
+            # Calculate distance to target
+            dx = target_pos.x - current_x
+            dy = target_pos.y - current_y
+            distance = math.sqrt(dx**2 + dy**2)
+            
+            # Check if we've reached the target
+            if distance < self.position_tolerance:
+                self.reach_goal()
                 return
             
-            current_pose = self.current_pose
-            target_pos = self.target_position
-        
-        # Calculate distance to target
-        dx = target_pos.x - current_pose.position.x
-        dy = target_pos.y - current_pose.position.y
-        distance = math.sqrt(dx**2 + dy**2)
-        
-        # Check if we've reached the target
-        if distance < self.position_tolerance:
-            self.reach_goal()
-            return
-        
-        # Calculate angle to target
-        target_angle = math.atan2(dy, dx)
-        current_angle = self.get_yaw_from_quaternion(current_pose.orientation)
-        
-        # Calculate angle difference
-        angle_diff = self.normalize_angle(target_angle - current_angle)
-        
-        # Create twist message
-        twist = Twist()
-        
-        # If we need to turn significantly, turn first
-        if abs(angle_diff) > self.angle_tolerance:
-            # Only turn
-            twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
-            twist.linear.x = 0.0
-        else:
-            # Move forward with slight course correction
-            twist.linear.x = min(self.linear_speed, distance * 2.0)  # Slow down when close
-            twist.angular.z = angle_diff * 2.0  # Proportional steering
-        
-        # Publish the twist command
-        self.cmd_vel_pub.publish(twist)
-        
-        # Log progress occasionally
-        if int(time.time() * 2) % 10 == 0:  # Every 5 seconds
-            self.get_logger().debug(f"Distance to target: {distance:.2f}m, Angle diff: {angle_diff:.2f}rad")
+            # Calculate angle to target
+            target_angle = math.atan2(dy, dx)
+            
+            # Calculate angle difference
+            angle_diff = self.normalize_angle(target_angle - current_yaw)
+            
+            # Create twist message
+            twist = Twist()
+            
+            # If we need to turn significantly, turn first
+            if abs(angle_diff) > self.angle_tolerance:
+                # Only turn
+                twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+                twist.linear.x = 0.0
+                
+                # Update simulated orientation
+                with self.lock:
+                    dt = 0.1  # Control loop period
+                    self.simulated_yaw += twist.angular.z * dt
+                    self.simulated_yaw = self.normalize_angle(self.simulated_yaw)
+            else:
+                # Move forward with slight course correction
+                twist.linear.x = min(self.linear_speed, distance * 2.0)  # Slow down when close
+                twist.angular.z = angle_diff * 2.0  # Proportional steering
+                
+                # Update simulated position
+                with self.lock:
+                    dt = 0.1  # Control loop period
+                    self.simulated_x += twist.linear.x * math.cos(self.simulated_yaw) * dt
+                    self.simulated_y += twist.linear.x * math.sin(self.simulated_yaw) * dt
+                    self.simulated_yaw += twist.angular.z * dt
+                    self.simulated_yaw = self.normalize_angle(self.simulated_yaw)
+            
+            # Publish the twist command
+            self.cmd_vel_pub.publish(twist)
+            
+            # Log progress occasionally
+            if int(time.time() * 2) % 10 == 0:  # Every 5 seconds
+                self.get_logger().info(f"Distance to target: {distance:.2f}m, Current: ({current_x:.2f}, {current_y:.2f}), Target: ({target_pos.x:.2f}, {target_pos.y:.2f})")
+                
+        except Exception as e:
+            self.get_logger().error(f"Error in control loop: {e}")
+            # Stop the robot in case of error
+            twist = Twist()
+            self.cmd_vel_pub.publish(twist)
     
     def reach_goal(self):
         """Handle reaching the navigation goal"""

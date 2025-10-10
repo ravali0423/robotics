@@ -286,7 +286,7 @@
 
   <model name="start_marker">
       <static>true</static>
-      <pose>0.3955422209151571 -4.711848572836701 0.1 0 0 0</pose>
+      <pose>0.12988790177324105 -6.317211426950027 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -313,7 +313,7 @@
       </link>
     </model><model name="destination_marker">
       <static>true</static>
-      <pose>4.322549016091683 -4.821328187747051 0.1 0 0 0</pose>
+      <pose>-0.41695374888096026 -1.7318144811576417 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>

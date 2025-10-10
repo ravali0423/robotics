@@ -1,4 +1,9 @@
 source install/setup.bash
+
+# Generate new waypoints
+source install/setup.bash && python3 src/warehouse_robot/scripts/generate_new_waypoints.py && colcon build --packages-select warehouse_robot && ros2 launch warehouse_robot custom_warehouse.launch.py
+
+# Launch the project simulation
 ros2 launch warehouse_robot custom_warehouse.launch.py
 
 # In a new terminal:

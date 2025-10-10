@@ -23,6 +23,8 @@ def read_waypoints():
             for line in f:
                 key, value = line.strip().split('=')
                 waypoints[key] = float(value)
+        
+        print("📍 Waypoints loaded:", waypoints)
         return waypoints
     except Exception as e:
         print(f"Warning: Could not read waypoints file: {e}")

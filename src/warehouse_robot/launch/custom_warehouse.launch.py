@@ -52,13 +52,22 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Car model path
-    car_model_path = PathJoinSubstitution([
-        warehouse_robot_pkg,
-        'models',
-        'diff_drive',
-        'model.sdf'
-    ])
+    # Start physics simulation (unpause)
+    start_physics = TimerAction(
+        period=3.0,  # Wait 3 seconds for Gazebo to load
+        actions=[
+            ExecuteProcess(
+                cmd=[
+                    'gz', 'service', '-s', '/world/warehouse_world/control',
+                    '--reqtype', 'gz.msgs.WorldControl',
+                    '--reptype', 'gz.msgs.Boolean',
+                    '--timeout', '5000',
+                    '--req', 'pause: false'
+                ],
+                output='screen'
+            )
+        ]
+    )
 
     # Automatically spawn the car after Gazebo loads
     spawn_robot = TimerAction(
@@ -77,7 +86,7 @@ def generate_launch_description():
                     '  position: {'
                     '    x: 0.0, '
                     '    y: 0.0, '
-                    '    z: 3.0'
+                    '    z: 5.0'
                     '  }'
                     '}'
                 ],
@@ -108,6 +117,7 @@ def generate_launch_description():
         spawn_y_arg,
         spawn_z_arg,
         start_gazebo,
+        start_physics,
         spawn_robot,
         car_bridge
     ])

@@ -30,6 +30,7 @@ class WarehouseRobotController(Node):
         # Robot state
         self.current_position = {"x": 0.0, "y": 0.0, "yaw": 0.0}
         self.package_attached = False
+        self.package_offset = None  # Offset for package following
         self.current_state = "idle"  # idle, moving_to_package, moving_to_destination, returning_to_start
         
         # Load waypoints
@@ -131,7 +132,6 @@ class WarehouseRobotController(Node):
         iteration_count = 0
         last_distance = float('inf')
         stuck_counter = 0
-        consecutive_close_count = 0  # Count how many times we're close to target
         
         while rclpy.ok() and iteration_count < max_iterations:
             iteration_count += 1
@@ -142,23 +142,20 @@ class WarehouseRobotController(Node):
             # Process ROS callbacks to get latest odometry
             rclpy.spin_once(self, timeout_sec=0.1)  # Longer timeout to ensure we get updates
             
+            # Update package position if attached (make it follow the robot)
+            self.update_package_position()
+            
             # Calculate distance and angle to target
             distance = self.calculate_distance(target_x, target_y)
             
             self.get_logger().info(f"💭 Distance check: {distance:.3f} < {self.position_tolerance} = {distance < self.position_tolerance}")
             
-            # Enhanced proximity detection - ONLY stop if we're actually close
+            # Simple proximity detection - stop immediately when close to target
             if distance < self.position_tolerance:
-                consecutive_close_count += 1
-                self.get_logger().info(f"🎯 Close to target! Distance: {distance:.3f}, count: {consecutive_close_count}")
-                
-                # Require MORE consecutive close readings AND very close distance
-                if consecutive_close_count >= 5 and distance < 0.3:
-                    self.stop_robot()
-                    self.get_logger().info(f"✅ Reached target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
-                    return  # Exit function completely
-            else:
-                consecutive_close_count = 0  # Reset if we move away
+                self.get_logger().info(f"🎯 Close to target! Distance: {distance:.3f}")
+                self.stop_robot()
+                self.get_logger().info(f"✅ Reached target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
+                return  # Exit function completely
             
             # Check if we're making progress (anti-stuck mechanism)
             if abs(distance - last_distance) < 0.01:
@@ -238,19 +235,19 @@ class WarehouseRobotController(Node):
         self.get_logger().info("✅ Stop command sent")
     
     def attach_package(self):
-        """Simulate attaching package to robot."""
+        """Attach package to robot by positioning it on top."""
         self.get_logger().info("📦 Attaching package...")
         
-        # Here you would normally use Gazebo services to attach the package
-        # For now, we'll simulate it with a service call to move the package
         try:
             import subprocess
+            
+            # Calculate position on top of robot
             package_x = self.current_position["x"]
-            package_y = self.current_position["y"]
-            package_z = 1.0  # Height on top of robot
+            package_y = self.current_position["y"] 
+            package_z = 0.6  # Height on top of robot (robot is ~0.4m high)
             
             # Move package to robot position
-            cmd = [
+            move_cmd = [
                 'gz', 'service', '-s', '/world/warehouse_world/set_pose',
                 '--reqtype', 'gz.msgs.Pose',
                 '--reptype', 'gz.msgs.Boolean',
@@ -258,28 +255,61 @@ class WarehouseRobotController(Node):
                 '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(move_cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 self.package_attached = True
-                self.get_logger().info("✅ Package attached successfully!")
+                self.get_logger().info("✅ Package positioned on robot!")
+                
+                # Start following the robot by storing initial relative position
+                self.package_offset = {"x": 0.0, "y": 0.0, "z": 0.6}
+                
             else:
-                self.get_logger().error(f"❌ Failed to attach package: {result.stderr}")
+                self.get_logger().error(f"❌ Failed to move package: {result.stderr}")
                 
         except Exception as e:
             self.get_logger().error(f"❌ Error attaching package: {e}")
     
+    def update_package_position(self):
+        """Update package position to follow the robot if attached."""
+        if not self.package_attached:
+            return
+            
+        try:
+            import subprocess
+            
+            # Calculate new package position relative to robot
+            package_x = self.current_position["x"] + self.package_offset["x"]
+            package_y = self.current_position["y"] + self.package_offset["y"]
+            package_z = self.package_offset["z"]
+            
+            # Move package to follow robot
+            move_cmd = [
+                'gz', 'service', '-s', '/world/warehouse_world/set_pose',
+                '--reqtype', 'gz.msgs.Pose',
+                '--reptype', 'gz.msgs.Boolean',
+                '--timeout', '1000',  # Shorter timeout for frequent updates
+                '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
+            ]
+            
+            subprocess.run(move_cmd, capture_output=True, text=True)
+            
+        except Exception as e:
+            # Don't spam errors for package following
+            pass
+    
     def detach_package(self):
-        """Simulate detaching package from robot."""
+        """Detach package from robot by dropping it at current location."""
         self.get_logger().info("📦 Detaching package...")
         
         try:
             import subprocess
+            
             # Drop package at current location
             package_x = self.current_position["x"]
             package_y = self.current_position["y"]
             package_z = 0.15  # Ground level
             
-            cmd = [
+            drop_cmd = [
                 'gz', 'service', '-s', '/world/warehouse_world/set_pose',
                 '--reqtype', 'gz.msgs.Pose',
                 '--reptype', 'gz.msgs.Boolean',
@@ -287,15 +317,22 @@ class WarehouseRobotController(Node):
                 '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(drop_cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 self.package_attached = False
+                self.package_offset = None  # Clear offset
                 self.get_logger().info("✅ Package delivered successfully!")
             else:
-                self.get_logger().error(f"❌ Failed to detach package: {result.stderr}")
+                self.get_logger().error(f"❌ Failed to drop package: {result.stderr}")
+                # Still mark as detached for mission logic
+                self.package_attached = False
+                self.package_offset = None
                 
         except Exception as e:
             self.get_logger().error(f"❌ Error detaching package: {e}")
+            # Still mark as detached for mission logic
+            self.package_attached = False
+            self.package_offset = None
     
     def go_to_package(self):
         """Navigate to package location and pick it up."""

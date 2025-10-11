@@ -148,13 +148,8 @@
             <diffuse>0.9 0.6 0.3 1.0</diffuse>
           </material>
         </visual>
-        <collision name="shelf_collision">
-          <geometry>
-            <box>
-              <size>1 4 3</size>
-            </box>
-          </geometry>
-        </collision>
+        
+        
       </link>
     </model>
 
@@ -173,13 +168,8 @@
             <diffuse>0.9 0.6 0.3 1.0</diffuse>
           </material>
         </visual>
-        <collision name="shelf_collision">
-          <geometry>
-            <box>
-              <size>1 4 3</size>
-            </box>
-          </geometry>
-        </collision>
+        
+        
       </link>
     </model>
 
@@ -286,7 +276,7 @@
 
   <model name="start_marker">
       <static>true</static>
-      <pose>-6.250658238424177 -3.87944805271494 0.1 0 0 0</pose>
+      <pose>-0.020241554017133012 8.644942712960006 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -313,7 +303,7 @@
       </link>
     </model><model name="package_marker">
       <static>true</static>
-      <pose>2.3068834593288283 -4.930033458400482 0.1 0 0 0</pose>
+      <pose>1.0739177218732152 -3.8573350931264354 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -340,7 +330,7 @@
       </link>
     </model><model name="destination_marker">
       <static>true</static>
-      <pose>-5.194061775512475 -1.36369086369624 0.1 0 0 0</pose>
+      <pose>-4.0362856134312315 -7.471372320226966 0.1 0 0 0</pose>
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
@@ -367,7 +357,7 @@
       </link>
     </model><model name="pickup_package">
       <static>false</static>
-      <pose>2.3068834593288283 -4.930033458400482 0.5 0 0 0</pose>
+      <pose>1.0739177218732152 -3.8573350931264354 0.5 0 0 0</pose>
       <link name="package_link">
         <inertial>
           <mass>0.5</mass>

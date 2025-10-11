@@ -14,9 +14,20 @@ source install/setup.bash
 ros2 run warehouse_robot robot_controller.py pickup    # Go to package and pick it up
 ros2 run warehouse_robot robot_controller.py deliver   # Deliver package to destination  
 ros2 run warehouse_robot robot_controller.py return    # Return to start position
-ros2 run warehouse_robot robot_controller.py mission   # Execute full pickup → deliver → return sequence
+ros2 run warehouse_robot robot_controller.py mission   # Execute full pickup → deliver → return sequence (WITH LOGGING)
 ros2 run warehouse_robot robot_controller.py status    # Show current robot status
 ros2 run warehouse_robot robot_controller.py stop      # Stop the robot immediately
+
+# 📝 Mission Logging:
+# The 'mission' command automatically saves detailed logs to /home/ravali/ros2_ws/mission_logs/
+# Log files include: timestamps, robot positions, commands, errors, mission phases, and duration
+
+# 📊 Mission Log Management:
+python3 src/warehouse_robot/scripts/mission_log_manager.py list      # List all mission logs
+python3 src/warehouse_robot/scripts/mission_log_manager.py latest    # View latest mission log
+python3 src/warehouse_robot/scripts/mission_log_manager.py summary   # Show mission summary
+python3 src/warehouse_robot/scripts/mission_log_manager.py clean     # Clean old logs (keep 10 newest)
+python3 src/warehouse_robot/scripts/mission_log_manager.py clean 5   # Clean old logs (keep 5 newest)
 
 # 🎯 Move to specific XY coordinates:
 ros2 run warehouse_robot robot_controller.py goto 2.0 3.0    # Move to X=2.0, Y=3.0

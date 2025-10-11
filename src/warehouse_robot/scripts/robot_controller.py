@@ -35,11 +35,11 @@ class WarehouseRobotController(Node):
         # Load waypoints
         self.waypoints = self.load_waypoints()
         
-        # Navigation parameters
-        self.linear_speed = 1.5
-        self.angular_speed = 1.0
-        self.position_tolerance = 0.3
-        self.angle_tolerance = 0.1
+        # Navigation parameters - simplified for better control
+        self.linear_speed = 0.8  # Slower for better control
+        self.angular_speed = 0.6  # Slower turning
+        self.position_tolerance = 1.0  # Larger tolerance to prevent early stopping
+        self.angle_tolerance = 0.2  # Not used in new logic, but kept for compatibility
         
         self.get_logger().info("🤖 Warehouse Robot Controller initialized!")
         self.get_logger().info(f"📍 Waypoints loaded: {len(self.waypoints)} points")
@@ -71,6 +71,10 @@ class WarehouseRobotController(Node):
     
     def odom_callback(self, msg):
         """Update robot position from odometry."""
+        # Store previous position for change detection
+        prev_x = self.current_position["x"]
+        prev_y = self.current_position["y"]
+        
         self.current_position["x"] = msg.pose.pose.position.x
         self.current_position["y"] = msg.pose.pose.position.y
         
@@ -81,20 +85,28 @@ class WarehouseRobotController(Node):
             1.0 - 2.0 * (orientation.y * orientation.y + orientation.z * orientation.z)
         )
         
+        # Detect if position actually changed
+        position_changed = abs(self.current_position["x"] - prev_x) > 0.001 or abs(self.current_position["y"] - prev_y) > 0.001
+        
         # Log position updates (less frequently)
         if hasattr(self, '_odom_count'):
             self._odom_count += 1
         else:
             self._odom_count = 1
         
-        if self._odom_count % 50 == 0:  # Log every 50th message to avoid spam
-            self.get_logger().info(f"📍 Odometry update: pos=({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw={self.current_position['yaw']:.2f})")
+        if self._odom_count % 50 == 0 or position_changed:  # Log every 50th message or when position changes
+            self.get_logger().info(f"📍 Odometry update: pos=({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw={self.current_position['yaw']:.2f}) {'📈 MOVED' if position_changed else '📍 STATIC'}")
     
     def calculate_distance(self, target_x, target_y):
         """Calculate distance to target point."""
         dx = target_x - self.current_position["x"]
         dy = target_y - self.current_position["y"]
-        return math.sqrt(dx*dx + dy*dy)
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        # Debug: Log the calculation
+        self.get_logger().debug(f"📏 Distance calc: target=({target_x:.2f},{target_y:.2f}), current=({self.current_position['x']:.2f},{self.current_position['y']:.2f}), distance={distance:.3f}")
+        
+        return distance
     
     def calculate_angle_to_target(self, target_x, target_y):
         """Calculate angle to target point."""
@@ -114,23 +126,56 @@ class WarehouseRobotController(Node):
         """Move robot to target position."""
         self.get_logger().info(f"🎯 Moving to ({target_x:.2f}, {target_y:.2f})")
         
-        rate = self.create_rate(10)  # 10 Hz
-        max_iterations = 1000  # Safety limit to prevent infinite loops
+        rate = self.create_rate(1)  # 1 Hz - send commands every 1 second
+        max_iterations = 60  # 60 seconds at 1Hz - reasonable limit
         iteration_count = 0
+        last_distance = float('inf')
+        stuck_counter = 0
+        consecutive_close_count = 0  # Count how many times we're close to target
         
         while rclpy.ok() and iteration_count < max_iterations:
             iteration_count += 1
+
+            self.get_logger().info(f"Iteration: {iteration_count} - rclpy.ok()={rclpy.ok()}, max_iterations={max_iterations}")
+                
             
             # Process ROS callbacks to get latest odometry
-            rclpy.spin_once(self, timeout_sec=0.01)
+            rclpy.spin_once(self, timeout_sec=0.1)  # Longer timeout to ensure we get updates
             
             # Calculate distance and angle to target
             distance = self.calculate_distance(target_x, target_y)
             
+            self.get_logger().info(f"💭 Distance check: {distance:.3f} < {self.position_tolerance} = {distance < self.position_tolerance}")
+            
+            # Enhanced proximity detection - ONLY stop if we're actually close
             if distance < self.position_tolerance:
-                self.stop_robot()
-                self.get_logger().info(f"✅ Reached target ({target_x:.2f}, {target_y:.2f})")
-                return  # Exit function completely
+                consecutive_close_count += 1
+                self.get_logger().info(f"🎯 Close to target! Distance: {distance:.3f}, count: {consecutive_close_count}")
+                
+                # Require MORE consecutive close readings AND very close distance
+                if consecutive_close_count >= 5 and distance < 0.3:
+                    self.stop_robot()
+                    self.get_logger().info(f"✅ Reached target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
+                    return  # Exit function completely
+            else:
+                consecutive_close_count = 0  # Reset if we move away
+            
+            # Check if we're making progress (anti-stuck mechanism)
+            if abs(distance - last_distance) < 0.01:
+                stuck_counter += 1
+                if stuck_counter > 5:  # 5 seconds at 1Hz
+                    self.get_logger().warn("🚨 Robot appears stuck, trying recovery maneuver...")
+                    # Recovery: small random movement
+                    recovery_twist = Twist()
+                    recovery_twist.linear.x = 0.2
+                    recovery_twist.angular.z = 0.5
+                    for _ in range(5):
+                        self.cmd_vel_publisher.publish(recovery_twist)
+                        time.sleep(0.1)
+                    stuck_counter = 0
+            else:
+                stuck_counter = 0
+            last_distance = distance
             
             # Calculate angle to target
             target_angle = self.calculate_angle_to_target(target_x, target_y)
@@ -143,15 +188,17 @@ class WarehouseRobotController(Node):
             self.get_logger().info(f"🔍 Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
             self.get_logger().info(f"🎯 Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
             
-            # If we need to turn significantly, prioritize rotation
-            if abs(angle_diff) > self.angle_tolerance:
-                twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
-                twist.linear.x = 0.5 if abs(angle_diff) < 1.0 else 0.0  # Slow forward while turning
-                self.get_logger().info(f"🔄 Turning: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
+            # Simplified and more robust navigation logic
+            if abs(angle_diff) > 1.0:  # Need significant turning (>57 degrees)
+                # Pure rotation - stop and turn
+                twist.linear.x = 0.0
+                twist.angular.z = 0.3 if angle_diff > 0 else -0.3  # Slower, controlled turning
+                self.get_logger().info(f"🔄 Turning only: angular_z={twist.angular.z:.2f}")
             else:
-                # Move forward
-                twist.linear.x = min(self.linear_speed, distance * 2.0)  # Slow down when close
-                twist.angular.z = angle_diff * 2.0  # Fine-tune direction
+                # Good direction - move forward with minor corrections
+                # Constant speed for simplicity
+                twist.linear.x = 0.5  # Constant moderate speed
+                twist.angular.z = angle_diff * 0.2  # Gentle steering
                 self.get_logger().info(f"➡️ Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
             
             self.get_logger().info(f"📤 Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
@@ -159,11 +206,24 @@ class WarehouseRobotController(Node):
             # Publish the command
             self.cmd_vel_publisher.publish(twist)
             
-            rate.sleep()
+            self.get_logger().info(f"🔄 End of iteration {iteration_count}, going to sleep for 1 second...")
+            
+            # Simple time.sleep instead of rate.sleep to avoid hanging
+            time.sleep(1.0)
+            self.get_logger().info(f"🔄 Woke up from sleep, starting iteration {iteration_count + 1}")
+        
+        # If we exit the loop, log why
+        self.get_logger().info(f"🚪 Exited loop: rclpy.ok()={rclpy.ok()}, iteration_count={iteration_count}, max_iterations={max_iterations}")
         
         # Safety: Always stop at the end if we exit the loop without reaching target
+        self.get_logger().warn(f"⚠️  Movement timed out after {max_iterations} iterations. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
         self.stop_robot()
-        self.get_logger().warn(f"⚠️  Movement loop ended without reaching target. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
+        
+        # Force stop for safety
+        for _ in range(10):
+            stop_twist = Twist()
+            self.cmd_vel_publisher.publish(stop_twist)
+            time.sleep(0.1)
     
     def stop_robot(self):
         """Stop the robot."""

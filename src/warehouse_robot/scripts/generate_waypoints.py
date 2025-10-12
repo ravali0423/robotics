@@ -95,6 +95,9 @@ class WarehouseWaypointGenerator:
         else:  # gray for package location
             ambient = "0.7 0.7 0.7 1.0"
             diffuse = "0.7 0.7 0.7 1.0"
+        
+        # Remove collision from all markers (start, package, destination)
+        collision_xml = ""
             
         marker_sdf = f'''
     <model name="{name}_marker">
@@ -114,15 +117,7 @@ class WarehouseWaypointGenerator:
             <specular>0.2 0.2 0.2 1.0</specular>
             <emissive>0.1 0.1 0.1 1.0</emissive>
           </material>
-        </visual>
-        <collision name="marker_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.3</radius>
-              <length>0.2</length>
-            </cylinder>
-          </geometry>
-        </collision>
+        </visual>{collision_xml}
       </link>
     </model>'''
         return marker_sdf
@@ -172,37 +167,6 @@ class WarehouseWaypointGenerator:
       </link>
     </model>'''
         return package_sdf
-            
-        marker_sdf = f'''
-    <model name="{name}_marker">
-      <static>true</static>
-      <pose>{x} {y} 0.1 0 0 0</pose>
-      <link name="marker_link">
-        <visual name="marker_visual">
-          <geometry>
-            <cylinder>
-              <radius>0.3</radius>
-              <length>0.2</length>
-            </cylinder>
-          </geometry>
-          <material>
-            <ambient>{ambient}</ambient>
-            <diffuse>{diffuse}</diffuse>
-            <specular>0.2 0.2 0.2 1.0</specular>
-            <emissive>0.1 0.1 0.1 1.0</emissive>
-          </material>
-        </visual>
-        <collision name="marker_collision">
-          <geometry>
-            <cylinder>
-              <radius>0.3</radius>
-              <length>0.2</length>
-            </cylinder>
-          </geometry>
-        </collision>
-      </link>
-    </model>'''
-        return marker_sdf
     
     def update_world_file(self, world_file_path, waypoints):
         """Update the SDF world file with waypoint markers and package."""

@@ -6,6 +6,7 @@ Supports autonomous navigation between waypoints and package manipulation.
 
 import rclpy
 from rclpy.node import Node
+from rclpy.duration import Duration
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 import math
@@ -14,6 +15,7 @@ import sys
 import os
 import logging
 from datetime import datetime
+import random  # For random turning in recovery
 
 
 class WarehouseRobotController(Node):
@@ -40,15 +42,17 @@ class WarehouseRobotController(Node):
         self.package_attached = False
         self.package_offset = None  # Offset for package following
         self.current_state = "idle"  # idle, moving_to_package, moving_to_destination, returning_to_start
+        self.last_package_update_time = time.time()
         
         # Load waypoints
         self.waypoints = self.load_waypoints()
         
-        # Navigation parameters - simplified for better control
-        self.linear_speed = 0.8  # Slower for better control
-        self.angular_speed = 0.6  # Slower turning
+        # Navigation parameters - tuned for smoother movement and less aggressive impacts
+        self.linear_speed = 0.5  # Reduced for gentler movement
+        self.angular_speed = 0.4  # Reduced turning speed
         self.position_tolerance = 0.5  # Smaller tolerance for precise stopping
         self.angle_tolerance = 0.2  # Not used in new logic, but kept for compatibility
+        self.reverse_speed = 0.3  # Speed for backward movement in recovery
         
         self.get_logger().info("🤖 Warehouse Robot Controller initialized!")
         self.get_logger().info(f"📍 Waypoints loaded: {len(self.waypoints)} points")
@@ -111,16 +115,17 @@ class WarehouseRobotController(Node):
                         waypoints[key] = float(value)
             
             return {
-                "start": {"x": waypoints.get("START_X", 0.0), "y": waypoints.get("START_Y", 0.0)},
-                "package": {"x": waypoints.get("PACKAGE_X", 0.0), "y": waypoints.get("PACKAGE_Y", 0.0)},
-                "destination": {"x": waypoints.get("DEST_X", 5.0), "y": waypoints.get("DEST_Y", 5.0)}
+                "start": {"x": waypoints.get("START_X", 8.85), "y": waypoints.get("START_Y", 4.70)},
+                "package": {"x": waypoints.get("PACKAGE_X", 0.82), "y": waypoints.get("PACKAGE_Y", 3.32)},
+                "destination": {"x": waypoints.get("DEST_X", -8.38), "y": waypoints.get("DEST_Y", 8.64)}
             }
         except Exception as e:
             self.get_logger().error(f"Failed to load waypoints: {e}")
+            # Use actual marker positions from SDF as defaults
             return {
-                "start": {"x": 0.0, "y": 0.0},
-                "package": {"x": 2.0, "y": 2.0},
-                "destination": {"x": 5.0, "y": 5.0}
+                "start": {"x": 8.85, "y": 4.70},
+                "package": {"x": 0.82, "y": 3.32},
+                "destination": {"x": -8.38, "y": 8.64}
             }
     
     def odom_callback(self, msg):
@@ -181,20 +186,19 @@ class WarehouseRobotController(Node):
         self.enhanced_log(f"🎯 Moving to ({target_x:.2f}, {target_y:.2f})")
         self.log_to_file(f"Navigation started to target: ({target_x:.2f}, {target_y:.2f})")
         
-        rate = self.create_rate(1)  # 1 Hz - send commands every 1 second
-        max_iterations = 60  # 600 seconds at 1Hz - reasonable limit
+        freq = 10.0
+        period = Duration(seconds=1.0 / freq)
+        max_iterations = int(300 * freq)  # Increased to 5 minutes for longer paths
         iteration_count = 0
         last_distance = float('inf')
         stuck_counter = 0
+        debug_interval = 20  # Log detailed state every 20 iterations (~2s)
         
         while rclpy.ok() and iteration_count < max_iterations:
             iteration_count += 1
-
-            self.log_to_file(f"Iteration: {iteration_count} - rclpy.ok()={rclpy.ok()}, max_iterations={max_iterations}")
-                
             
             # Process ROS callbacks to get latest odometry
-            rclpy.spin_once(self, timeout_sec=0.1)  # Longer timeout to ensure we get updates
+            rclpy.spin_once(self, timeout_sec=0.0)
             
             # Update package position if attached (make it follow the robot)
             self.update_package_position()
@@ -215,17 +219,12 @@ class WarehouseRobotController(Node):
             # Check if we're making progress (anti-stuck mechanism)
             if abs(distance - last_distance) < 0.01:
                 stuck_counter += 1
-                if stuck_counter > 5:  # 5 seconds at 1Hz
-                    self.enhanced_log("🚨 Robot appears stuck, trying recovery maneuver...")
-                    self.log_to_file("Robot stuck - executing recovery maneuver")
-                    # Recovery: small random movement
-                    recovery_twist = Twist()
-                    recovery_twist.linear.x = 0.2
-                    recovery_twist.angular.z = 0.5
-                    for _ in range(5):
-                        self.cmd_vel_publisher.publish(recovery_twist)
-                        time.sleep(0.1)
+                if stuck_counter > int(3 * freq):  # Reduced to 3 seconds for faster recovery on walls
+                    self.enhanced_log("🚨 Robot appears stuck (possibly against wall), executing recovery maneuver...")
+                    self.log_to_file("Robot stuck - executing enhanced recovery: reverse then turn")
+                    self.execute_stuck_recovery()
                     stuck_counter = 0
+                    last_distance = distance  # Reset to avoid immediate re-trigger
             else:
                 stuck_counter = 0
             last_distance = distance
@@ -237,39 +236,40 @@ class WarehouseRobotController(Node):
             # Create velocity command
             twist = Twist()
             
-            # Log current state for debugging
-            self.log_to_file(f"Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
-            self.log_to_file(f"Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
+            # Log current state for debugging (less frequently)
+            if iteration_count % debug_interval == 0:
+                self.log_to_file(f"Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
+                self.log_to_file(f"Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
             
             # Simplified and more robust navigation logic
-            if abs(angle_diff) > 1.0:  # Need significant turning (>57 degrees)
-                # Pure rotation - stop and turn
+            if abs(angle_diff) > 0.5:  # Reduced threshold for earlier turning (28 degrees)
+                # Pure rotation - stop and turn (no forward to avoid pushing into walls)
                 twist.linear.x = 0.0
-                twist.angular.z = 0.3 if angle_diff > 0 else -0.3  # Slower, controlled turning
-                self.log_to_file(f"Turning only: angular_z={twist.angular.z:.2f}")
+                twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+                if iteration_count % debug_interval == 0:
+                    self.log_to_file(f"Turning only: angular_z={twist.angular.z:.2f}")
             else:
                 # Good direction - move forward with minor corrections
                 # Constant speed for simplicity
-                twist.linear.x = 0.5  # Constant moderate speed
-                twist.angular.z = angle_diff * 0.2  # Gentle steering
-                self.log_to_file(f"Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
+                twist.linear.x = self.linear_speed
+                twist.angular.z = angle_diff * (self.angular_speed / math.pi)  # Proportional up to max speed
+                if iteration_count % debug_interval == 0:
+                    self.log_to_file(f"Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
             
-            self.log_to_file(f"Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
+            if iteration_count % debug_interval == 0:
+                self.log_to_file(f"Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
             
             # Publish the command
             self.cmd_vel_publisher.publish(twist)
             
-            self.log_to_file(f"End of iteration {iteration_count}, going to sleep for 1 second...")
-            
-            # Simple time.sleep instead of rate.sleep to avoid hanging
-            time.sleep(1.0)
-            self.log_to_file(f"Woke up from sleep, starting iteration {iteration_count + 1}")
+            # Sleep for the rate period
+            self.get_clock().sleep_for(period)
         
         # If we exit the loop, log why
         self.log_to_file(f"Exited loop: rclpy.ok()={rclpy.ok()}, iteration_count={iteration_count}, max_iterations={max_iterations}")
         
         # Safety: Always stop at the end if we exit the loop without reaching target
-        self.enhanced_log(f"⚠️  Movement timed out after {max_iterations} iterations. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
+        self.enhanced_log(f"⚠️  Movement timed out after {max_iterations / freq:.1f}s. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
         self.log_to_file(f"Navigation timeout - final distance: {self.calculate_distance(target_x, target_y):.2f}")
         self.stop_robot()
         
@@ -278,6 +278,36 @@ class WarehouseRobotController(Node):
             stop_twist = Twist()
             self.cmd_vel_publisher.publish(stop_twist)
             time.sleep(0.1)
+    
+    def execute_stuck_recovery(self):
+        """Enhanced recovery maneuver: reverse straight, then turn randomly to escape."""
+        self.enhanced_log("🔄 Recovery Phase 1: Reversing...")
+        
+        # Phase 1: Reverse straight for ~1 second
+        recovery_twist = Twist()
+        recovery_twist.linear.x = -self.reverse_speed
+        recovery_twist.angular.z = 0.0
+        for _ in range(10):  # 1 second at 10Hz
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        # Phase 2: Turn in place for ~1 second (random direction for variety)
+        turn_dir = random.choice([-1, 1])
+        recovery_twist.linear.x = 0.0
+        recovery_twist.angular.z = self.angular_speed * turn_dir
+        for _ in range(10):
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        # Phase 3: Small forward nudge to clear any minor jams
+        recovery_twist.linear.x = self.linear_speed * 0.5  # Half speed
+        recovery_twist.angular.z = 0.0
+        for _ in range(5):  # 0.5 seconds
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        self.enhanced_log("🔄 Recovery maneuver completed")
+        self.log_to_file("Stuck recovery executed: reverse + turn + nudge")
     
     def stop_robot(self):
         """Stop the robot."""
@@ -335,7 +365,12 @@ class WarehouseRobotController(Node):
         """Update package position to follow the robot if attached."""
         if not self.package_attached:
             return
-            
+        
+        current_time = time.time()
+        if current_time - self.last_package_update_time < 0.2:  # Throttle to ~5Hz
+            return
+        self.last_package_update_time = current_time
+        
         try:
             import subprocess
             

@@ -50,9 +50,11 @@ class WarehouseRobotController(Node):
         # Navigation parameters - tuned for smoother movement and less aggressive impacts
         self.linear_speed = 0.5  # Reduced for gentler movement
         self.angular_speed = 0.4  # Reduced turning speed
-        self.position_tolerance = 0.5  # Smaller tolerance for precise stopping
-        self.angle_tolerance = 0.2  # Not used in new logic, but kept for compatibility
+        self.position_tolerance = 0.05  # Tightened to 5cm for exact positioning
+        self.angle_tolerance = 0.05  # Tightened for precise orientation at end
         self.reverse_speed = 0.3  # Speed for backward movement in recovery
+        self.min_progress_threshold = 0.02  # Slightly higher to ignore micro-drift
+        self.stuck_recovery_count = 0  # Track consecutive recoveries
         
         self.get_logger().info("🤖 Warehouse Robot Controller initialized!")
         self.get_logger().info(f"📍 Waypoints loaded: {len(self.waypoints)} points")
@@ -181,6 +183,32 @@ class WarehouseRobotController(Node):
             angle += 2.0 * math.pi
         return angle
     
+    def align_to_target(self, target_x, target_y):
+        """Fine-tune orientation to face the target after position is reached."""
+        self.enhanced_log("🔄 Fine-tuning orientation to face target...")
+        target_angle = self.calculate_angle_to_target(target_x, target_y)
+        angle_diff = self.normalize_angle(target_angle - self.current_position["yaw"])
+        
+        freq = 10.0
+        period = Duration(seconds=1.0 / freq)
+        max_iterations = int(30 * freq)  # 30s max for alignment
+        iteration_count = 0
+        
+        while rclpy.ok() and iteration_count < max_iterations and abs(angle_diff) > self.angle_tolerance:
+            iteration_count += 1
+            rclpy.spin_once(self, timeout_sec=0.0)
+            
+            angle_diff = self.normalize_angle(target_angle - self.current_position["yaw"])
+            twist = Twist()
+            twist.linear.x = 0.0
+            twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+            self.cmd_vel_publisher.publish(twist)
+            self.get_clock().sleep_for(period)
+        
+        self.stop_robot()
+        final_angle_diff = abs(self.normalize_angle(target_angle - self.current_position["yaw"]))
+        self.enhanced_log(f"✅ Orientation aligned (diff: {final_angle_diff:.3f} rad)")
+    
     def move_to_target(self, target_x, target_y):
         """Move robot to target position."""
         self.enhanced_log(f"🎯 Moving to ({target_x:.2f}, {target_y:.2f})")
@@ -193,6 +221,7 @@ class WarehouseRobotController(Node):
         last_distance = float('inf')
         stuck_counter = 0
         debug_interval = 20  # Log detailed state every 20 iterations (~2s)
+        is_moving_forward = False  # Track if command has linear.x > 0
         
         while rclpy.ok() and iteration_count < max_iterations:
             iteration_count += 1
@@ -213,21 +242,10 @@ class WarehouseRobotController(Node):
                 self.enhanced_log(f"🎯 Close to target! Distance: {distance:.3f}")
                 self.log_to_file(f"Target reached! Final distance: {distance:.3f}")
                 self.stop_robot()
-                self.enhanced_log(f"✅ Reached target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
+                self.align_to_target(target_x, target_y)  # Align orientation
+                self.enhanced_log(f"✅ Reached and aligned to target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
+                self.stuck_recovery_count = 0  # Reset for next nav
                 return  # Exit function completely
-            
-            # Check if we're making progress (anti-stuck mechanism)
-            if abs(distance - last_distance) < 0.01:
-                stuck_counter += 1
-                if stuck_counter > int(3 * freq):  # Reduced to 3 seconds for faster recovery on walls
-                    self.enhanced_log("🚨 Robot appears stuck (possibly against wall), executing recovery maneuver...")
-                    self.log_to_file("Robot stuck - executing enhanced recovery: reverse then turn")
-                    self.execute_stuck_recovery()
-                    stuck_counter = 0
-                    last_distance = distance  # Reset to avoid immediate re-trigger
-            else:
-                stuck_counter = 0
-            last_distance = distance
             
             # Calculate angle to target
             target_angle = self.calculate_angle_to_target(target_x, target_y)
@@ -235,17 +253,11 @@ class WarehouseRobotController(Node):
             
             # Create velocity command
             twist = Twist()
-            
-            # Log current state for debugging (less frequently)
-            if iteration_count % debug_interval == 0:
-                self.log_to_file(f"Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
-                self.log_to_file(f"Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
-            
-            # Simplified and more robust navigation logic
             if abs(angle_diff) > 0.5:  # Reduced threshold for earlier turning (28 degrees)
                 # Pure rotation - stop and turn (no forward to avoid pushing into walls)
                 twist.linear.x = 0.0
                 twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+                is_moving_forward = False
                 if iteration_count % debug_interval == 0:
                     self.log_to_file(f"Turning only: angular_z={twist.angular.z:.2f}")
             else:
@@ -253,6 +265,7 @@ class WarehouseRobotController(Node):
                 # Constant speed for simplicity
                 twist.linear.x = self.linear_speed
                 twist.angular.z = angle_diff * (self.angular_speed / math.pi)  # Proportional up to max speed
+                is_moving_forward = True
                 if iteration_count % debug_interval == 0:
                     self.log_to_file(f"Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
             
@@ -261,6 +274,39 @@ class WarehouseRobotController(Node):
             
             # Publish the command
             self.cmd_vel_publisher.publish(twist)
+            
+            # Check if we're making progress (anti-stuck mechanism) - ONLY when moving forward
+            if is_moving_forward:
+                if abs(distance - last_distance) < self.min_progress_threshold:
+                    stuck_counter += 1
+                    if stuck_counter > int(3 * freq) and self.stuck_recovery_count < 3:  # Limit to 3 recoveries per nav
+                        self.enhanced_log("🚨 Robot appears stuck (possibly against wall), executing recovery maneuver...")
+                        self.log_to_file("Robot stuck - executing enhanced recovery: reverse then turn")
+                        self.execute_stuck_recovery()
+                        stuck_counter = 0
+                        last_distance = distance  # Reset to avoid immediate re-trigger
+                        self.stuck_recovery_count += 1
+                        self.enhanced_log(f"🔄 Recovery #{self.stuck_recovery_count} executed")
+                    elif self.stuck_recovery_count >= 3:
+                        self.enhanced_log("⚠️ Max recoveries reached—aborting nav to avoid loops")
+                        self.log_to_file("Max recoveries reached - aborting navigation")
+                        self.stop_robot()
+                        self.stuck_recovery_count = 0  # Reset for next nav
+                        return  # Early exit
+                else:
+                    stuck_counter = 0
+                    if stuck_counter == 0:  # Reset count on progress
+                        self.stuck_recovery_count = 0
+            else:
+                # Reset counter during turns to avoid false stuck
+                stuck_counter = 0
+            
+            last_distance = distance
+            
+            # Log current state for debugging (less frequently)
+            if iteration_count % debug_interval == 0:
+                self.log_to_file(f"Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
+                self.log_to_file(f"Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
             
             # Sleep for the rate period
             self.get_clock().sleep_for(period)
@@ -272,6 +318,7 @@ class WarehouseRobotController(Node):
         self.enhanced_log(f"⚠️  Movement timed out after {max_iterations / freq:.1f}s. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
         self.log_to_file(f"Navigation timeout - final distance: {self.calculate_distance(target_x, target_y):.2f}")
         self.stop_robot()
+        self.stuck_recovery_count = 0  # Reset for next nav
         
         # Force stop for safety
         for _ in range(10):
@@ -322,20 +369,20 @@ class WarehouseRobotController(Node):
         self.get_logger().info("✅ Stop command sent")
     
     def attach_package(self):
-        """Attach package to robot by positioning it on top."""
+        """Attach package to robot by positioning it exactly on top."""
         self.enhanced_log("📦 Attaching package...")
         
         try:
             import subprocess
             
-            # Calculate position on top of robot
+            # Use exact current robot position for precise placement
             package_x = self.current_position["x"]
             package_y = self.current_position["y"] 
-            package_z = 0.6  # Height on top of robot (robot is ~0.4m high)
+            package_z = 0.6  # Height on top of robot (adjust if robot model height differs)
             
-            self.log_to_file(f"Attempting to attach package at robot position: ({package_x:.2f}, {package_y:.2f}, {package_z:.2f})")
+            self.log_to_file(f"Attempting to attach package exactly at robot position: ({package_x:.3f}, {package_y:.3f}, {package_z:.3f})")
             
-            # Move package to robot position
+            # Move package to exact robot position on top
             move_cmd = [
                 'gz', 'service', '-s', '/world/warehouse_world/set_pose',
                 '--reqtype', 'gz.msgs.Pose',
@@ -347,10 +394,10 @@ class WarehouseRobotController(Node):
             result = subprocess.run(move_cmd, capture_output=True, text=True)
             if result.returncode == 0:
                 self.package_attached = True
-                self.enhanced_log("✅ Package positioned on robot!")
+                self.enhanced_log("✅ Package positioned exactly on robot!")
                 self.log_to_file("Package successfully attached to robot")
                 
-                # Start following the robot by storing initial relative position
+                # Exact following: zero offset in x/y, fixed z
                 self.package_offset = {"x": 0.0, "y": 0.0, "z": 0.6}
                 
             else:
@@ -362,7 +409,7 @@ class WarehouseRobotController(Node):
             self.log_to_file(f"Package attachment error: {str(e)}")
     
     def update_package_position(self):
-        """Update package position to follow the robot if attached."""
+        """Update package position to follow the robot exactly if attached."""
         if not self.package_attached:
             return
         
@@ -374,12 +421,12 @@ class WarehouseRobotController(Node):
         try:
             import subprocess
             
-            # Calculate new package position relative to robot
+            # Exact new package position: robot pos + zero x/y offset, fixed z
             package_x = self.current_position["x"] + self.package_offset["x"]
             package_y = self.current_position["y"] + self.package_offset["y"]
             package_z = self.package_offset["z"]
             
-            # Move package to follow robot
+            # Move package to follow robot exactly
             move_cmd = [
                 'gz', 'service', '-s', '/world/warehouse_world/set_pose',
                 '--reqtype', 'gz.msgs.Pose',
@@ -395,18 +442,18 @@ class WarehouseRobotController(Node):
             pass
     
     def detach_package(self):
-        """Detach package from robot by dropping it at current location."""
+        """Detach package from robot by dropping it exactly at current location."""
         self.enhanced_log("📦 Detaching package...")
         
         try:
             import subprocess
             
-            # Drop package at current location
+            # Drop package exactly at current robot location
             package_x = self.current_position["x"]
             package_y = self.current_position["y"]
             package_z = 0.15  # Ground level
             
-            self.log_to_file(f"Attempting to detach package at location: ({package_x:.2f}, {package_y:.2f}, {package_z:.2f})")
+            self.log_to_file(f"Attempting to detach package exactly at location: ({package_x:.3f}, {package_y:.3f}, {package_z:.3f})")
             
             drop_cmd = [
                 'gz', 'service', '-s', '/world/warehouse_world/set_pose',
@@ -450,8 +497,8 @@ class WarehouseRobotController(Node):
         
         self.move_to_target(package_pos["x"], package_pos["y"])
         
-        # Attach package
-        time.sleep(1.0)  # Small delay
+        # Attach package exactly on top
+        time.sleep(1.0)  # Small delay for settling
         self.attach_package()
         self.current_state = "package_picked_up"
         self.enhanced_log("✅ Package pickup phase completed")
@@ -470,8 +517,8 @@ class WarehouseRobotController(Node):
         
         self.move_to_target(dest_pos["x"], dest_pos["y"])
         
-        # Detach package
-        time.sleep(1.0)  # Small delay
+        # Detach package exactly at position
+        time.sleep(1.0)  # Small delay for settling
         self.detach_package()
         self.current_state = "package_delivered"
         self.enhanced_log("✅ Package delivery phase completed")

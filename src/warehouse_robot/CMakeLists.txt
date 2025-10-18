@@ -28,6 +28,7 @@ install(PROGRAMS
   scripts/generate_waypoints.py
   scripts/mission_log_manager.py
   scripts/show_waypoints.py
+  scripts/package_collision_handler.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

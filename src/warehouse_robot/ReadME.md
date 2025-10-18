@@ -6,6 +6,14 @@ source install/setup.bash && python3 src/warehouse_robot/scripts/generate_new_wa
 # Launch the project simulation (uses existing waypoints)
 ros2 launch warehouse_robot custom_warehouse.launch.py
 
+
+
+source install/setup.bash && python3 src/warehouse_robot/scripts/generate_new_waypoints.py && colcon build --packages-select warehouse_robot && ros2 launch warehouse_robot warehouse_with_pickup.launch.py
+
+python3 src/warehouse_robot/scripts/web_joystick_controller.py 
+
+
+
 # Warehouse Robot Package Delivery Commands:
 # In a new terminal:
 source install/setup.bash

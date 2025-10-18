@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Custom warehouse simulation using our warehouse world and diff_drive car.
-Generates random start/destination waypoints and spawns car at start position.
+Warehouse Robot with Built-in Gazebo Joystick Controls
+
+This launch file starts the warehouse simulation with Gazebo's native teleop controls.
+The joystick control will appear directly in the Gazebo GUI.
 """
 
 import os
-import subprocess
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -28,7 +29,6 @@ def read_waypoints():
         return waypoints
     except Exception as e:
         print(f"Warning: Could not read waypoints file: {e}")
-        # Return default values
         return {
             'START_X': 0.0,
             'START_Y': 0.0,
@@ -40,53 +40,50 @@ def read_waypoints():
 
 
 def generate_launch_description():
-    # Read existing waypoints (don't generate new ones)
-    print("📍 Reading existing waypoints...")
-    
-    # Read the existing waypoints
+    # Read waypoints for spawn position
     waypoints = read_waypoints()
     spawn_x = waypoints.get('START_X', 0.0)
     spawn_y = waypoints.get('START_Y', 0.0)
     
-    print(f"🚗 Car will spawn at start position: ({spawn_x:.2f}, {spawn_y:.2f})")
+    print(f"🚗 Robot will spawn at: ({spawn_x:.2f}, {spawn_y:.2f})")
+    print("🎮 Gazebo joystick controls will be available in the GUI")
     
     # Package paths
     warehouse_robot_pkg = FindPackageShare('warehouse_robot')
     
-    # Launch arguments (with dynamic defaults from waypoints)
+    # Launch arguments
     spawn_x_arg = DeclareLaunchArgument(
         'spawn_x',
         default_value=str(spawn_x),
-        description='X position to spawn robot (start waypoint)'
+        description='X position to spawn robot'
     )
     
     spawn_y_arg = DeclareLaunchArgument(
         'spawn_y',
         default_value=str(spawn_y),
-        description='Y position to spawn robot (start waypoint)'
+        description='Y position to spawn robot'
     )
     
     spawn_z_arg = DeclareLaunchArgument(
         'spawn_z',
         default_value='5.0',
-        description='Height to spawn robot for drop test'
+        description='Z position to spawn robot'
     )
 
-    # Custom warehouse world path
+    # World and GUI configuration paths
     warehouse_world_path = PathJoinSubstitution([
         warehouse_robot_pkg,
         'worlds',
         'warehouse_world.sdf'
     ])
     
-    # GUI configuration path for joystick controls
     gui_config_path = PathJoinSubstitution([
         warehouse_robot_pkg,
         'config',
         'joystick_plugin.config'
     ])
 
-    # Start Gazebo with our custom world and GUI config
+    # Start Gazebo with world and joystick GUI
     start_gazebo = ExecuteProcess(
         cmd=[
             'gz', 'sim',
@@ -97,9 +94,9 @@ def generate_launch_description():
         output='screen'
     )
 
-    # Start physics simulation (unpause)
+    # Start physics simulation
     start_physics = TimerAction(
-        period=3.0,  # Wait 3 seconds for Gazebo to load
+        period=3.0,
         actions=[
             ExecuteProcess(
                 cmd=[
@@ -114,9 +111,9 @@ def generate_launch_description():
         ]
     )
 
-    # Automatically spawn the car after Gazebo loads
+    # Spawn warehouse robot
     spawn_robot = TimerAction(
-        period=5.0,  # Wait 5 seconds for Gazebo to fully load
+        period=5.0,
         actions=[
             ExecuteProcess(
                 cmd=[
@@ -140,9 +137,9 @@ def generate_launch_description():
         ]
     )
 
-    # Bridge for car control (connects car to ROS2 topics)
-    car_bridge = TimerAction(
-        period=7.0,  # Start bridge after car is spawned
+    # ROS-Gazebo bridge for robot control
+    robot_bridge = TimerAction(
+        period=7.0,
         actions=[
             Node(
                 package='ros_gz_bridge',
@@ -152,7 +149,8 @@ def generate_launch_description():
                     '/model/warehouse_car/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry',
                     '/clock@rosgraph_msgs/msg/Clock@gz.msgs.Clock'
                 ],
-                output='screen'
+                output='screen',
+                name='robot_bridge'
             )
         ]
     )
@@ -164,5 +162,5 @@ def generate_launch_description():
         start_gazebo,
         start_physics,
         spawn_robot,
-        car_bridge
+        robot_bridge
     ])

@@ -29,8 +29,8 @@ class WarehouseRobotController(Node):
             self.setup_file_logging()
         
         # Publishers and Subscribers
-        self.cmd_vel_publisher = self.create_publisher(Twist, '/model/warehouse_car/cmd_vel', 10)
-        self.odom_subscriber = self.create_subscription(Odometry, '/model/warehouse_car/odometry', self.odom_callback, 10)
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/model/warehouse_car/cmd_vel', 1)
+        self.odom_subscriber = self.create_subscription(Odometry, '/model/warehouse_car/odometry', self.odom_callback, 1)
         
         # Wait for publisher to be ready
         self.get_logger().info("⏳ Waiting for publisher to connect...")
@@ -155,7 +155,7 @@ class WarehouseRobotController(Node):
         else:
             self._odom_count = 1
         
-        if self._odom_count % 50 == 0 or position_changed:  # Log every 50th message or when position changes
+        if self._odom_count % 1 == 0 or position_changed:  # Log every message or when position changes
             self.get_logger().info(f"📍 Odometry update: pos=({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw={self.current_position['yaw']:.2f}) {'📈 MOVED' if position_changed else '📍 STATIC'}")
     
     def calculate_distance(self, target_x, target_y):

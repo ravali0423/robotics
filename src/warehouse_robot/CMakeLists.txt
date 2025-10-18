@@ -23,9 +23,11 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/car_controller.py
   scripts/robot_controller.py
-  scripts/keyboard_controller.py
-  scripts/test_robot_movement.py
-  scripts/simple_robot_test.py
+  scripts/manual_robot_controller.py
+  scripts/web_joystick_controller.py
+  scripts/generate_waypoints.py
+  scripts/mission_log_manager.py
+  scripts/show_waypoints.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

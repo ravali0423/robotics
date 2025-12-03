@@ -9,7 +9,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(moveit_ros_planning_interface REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(robot_state_publisher REQUIRED)
+find_package(urdf REQUIRED)
+find_package(xacro REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -34,9 +40,22 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/rviz
 )
 
+install(DIRECTORY
+  urdf/
+  DESTINATION share/${PROJECT_NAME}/urdf
+)
+
 # Install Python scripts
 install(PROGRAMS
-  scripts/random_pose_publisher.py
+  scripts/hand_controller.py
+  scripts/enhanced_hand_controller.py
+  scripts/speech_recognition_node.py
+  scripts/gesture_sequencer.py
+  scripts/speech_to_gesture_coordinator.py
+  scripts/audio_visual_feedback.py
+  scripts/speech_to_gesture_demo.py
+  scripts/system_tester.py
+  scripts/test_hand.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -1,0 +1,672 @@
+#!/usr/bin/env python3
+"""
+Enhanced warehouse robot controller with package pickup and delivery.
+Supports autonomous navigation between waypoints and package manipulation.
+"""
+
+import rclpy
+from rclpy.node import Node
+from rclpy.duration import Duration
+from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
+import math
+import time
+import sys
+import os
+import logging
+from datetime import datetime
+import random  # For random turning in recovery
+
+
+class WarehouseRobotController(Node):
+    def __init__(self, enable_file_logging=False):
+        super().__init__('warehouse_robot_controller')
+        
+        # Setup file logging if enabled
+        self.file_logging_enabled = enable_file_logging
+        self.log_file = None
+        if enable_file_logging:
+            self.setup_file_logging()
+        
+        # Publishers and Subscribers
+        self.cmd_vel_publisher = self.create_publisher(Twist, '/model/warehouse_car/cmd_vel', 1)
+        self.odom_subscriber = self.create_subscription(Odometry, '/model/warehouse_car/odometry', self.odom_callback, 1)
+        
+        # Wait for publisher to be ready
+        self.get_logger().info("⏳ Waiting for publisher to connect...")
+        time.sleep(2.0)  # Give publisher time to connect
+        self.get_logger().info(f"📡 Publisher subscriber count: {self.cmd_vel_publisher.get_subscription_count()}")
+        
+        # Robot state
+        self.current_position = {"x": 0.0, "y": 0.0, "yaw": 0.0}
+        self.package_attached = False
+        self.package_offset = None  # Offset for package following
+        self.current_state = "idle"  # idle, moving_to_package, moving_to_destination, returning_to_start
+        self.last_package_update_time = time.time()
+        
+        # Load waypoints
+        self.waypoints = self.load_waypoints()
+        
+        # Navigation parameters - tuned for smoother movement and less aggressive impacts
+        self.linear_speed = 0.5  # Reduced for gentler movement
+        self.angular_speed = 0.4  # Reduced turning speed
+        self.position_tolerance = 0.05  # Tightened to 5cm for exact positioning
+        self.angle_tolerance = 0.05  # Tightened for precise orientation at end
+        self.reverse_speed = 0.3  # Speed for backward movement in recovery
+        self.min_progress_threshold = 0.02  # Slightly higher to ignore micro-drift
+        self.stuck_recovery_count = 0  # Track consecutive recoveries
+        
+        self.get_logger().info("🤖 Warehouse Robot Controller initialized!")
+        self.get_logger().info(f"📍 Waypoints loaded: {len(self.waypoints)} points")
+        
+    def setup_file_logging(self):
+        """Setup file logging for mission logs."""
+        # Create logs directory if it doesn't exist
+        log_dir = "/home/ravali/ros2_ws/mission_logs"
+        os.makedirs(log_dir, exist_ok=True)
+        
+        # Create log filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"warehouse_robot_mission_{timestamp}.log"
+        log_path = os.path.join(log_dir, log_filename)
+        
+        # Setup file logger
+        self.file_logger = logging.getLogger('mission_logger')
+        self.file_logger.setLevel(logging.INFO)
+        
+        # Remove any existing handlers
+        for handler in self.file_logger.handlers[:]:
+            self.file_logger.removeHandler(handler)
+        
+        # Create file handler
+        file_handler = logging.FileHandler(log_path)
+        file_handler.setLevel(logging.INFO)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        self.file_logger.addHandler(file_handler)
+        
+        self.log_file = log_path
+        self.log_to_file("🚀 Mission logging started")
+        self.log_to_file(f"📝 Log file: {log_path}")
+        self.get_logger().info(f"📝 Mission logs will be saved to: {log_path}")
+        
+    def log_to_file(self, message):
+        """Log message to file if file logging is enabled."""
+        if self.file_logging_enabled and hasattr(self, 'file_logger'):
+            self.file_logger.info(message)
+        
+    def enhanced_log(self, message):
+        """Log message to both ROS logger and file if enabled."""
+        self.get_logger().info(message)
+        self.log_to_file(message)
+        
+    def load_waypoints(self):
+        """Load waypoints from file."""
+        waypoints_file = "/home/ravali/ros2_ws/src/warehouse_robot/scripts/waypoints.txt"
+        waypoints = {}
+        
+        try:
+            with open(waypoints_file, 'r') as f:
+                for line in f:
+                    if '=' in line:
+                        key, value = line.strip().split('=')
+                        waypoints[key] = float(value)
+            
+            return {
+                "start": {"x": waypoints.get("START_X", 8.85), "y": waypoints.get("START_Y", 4.70)},
+                "package": {"x": waypoints.get("PACKAGE_X", 0.82), "y": waypoints.get("PACKAGE_Y", 3.32)},
+                "destination": {"x": waypoints.get("DEST_X", -8.38), "y": waypoints.get("DEST_Y", 8.64)}
+            }
+        except Exception as e:
+            self.get_logger().error(f"Failed to load waypoints: {e}")
+            # Use actual marker positions from SDF as defaults
+            return {
+                "start": {"x": 8.85, "y": 4.70},
+                "package": {"x": 0.82, "y": 3.32},
+                "destination": {"x": -8.38, "y": 8.64}
+            }
+    
+    def odom_callback(self, msg):
+        """Update robot position from odometry."""
+        # Store previous position for change detection
+        prev_x = self.current_position["x"]
+        prev_y = self.current_position["y"]
+        
+        self.current_position["x"] = msg.pose.pose.position.x
+        self.current_position["y"] = msg.pose.pose.position.y
+        
+        # Convert quaternion to yaw
+        orientation = msg.pose.pose.orientation
+        self.current_position["yaw"] = math.atan2(
+            2.0 * (orientation.w * orientation.z + orientation.x * orientation.y),
+            1.0 - 2.0 * (orientation.y * orientation.y + orientation.z * orientation.z)
+        )
+        
+        # Detect if position actually changed
+        position_changed = abs(self.current_position["x"] - prev_x) > 0.001 or abs(self.current_position["y"] - prev_y) > 0.001
+        
+        # Log position updates (less frequently)
+        if hasattr(self, '_odom_count'):
+            self._odom_count += 1
+        else:
+            self._odom_count = 1
+        
+        if self._odom_count % 1 == 0 or position_changed:  # Log every message or when position changes
+            self.get_logger().info(f"📍 Odometry update: pos=({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw={self.current_position['yaw']:.2f}) {'📈 MOVED' if position_changed else '📍 STATIC'}")
+    
+    def calculate_distance(self, target_x, target_y):
+        """Calculate distance to target point."""
+        dx = target_x - self.current_position["x"]
+        dy = target_y - self.current_position["y"]
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        # Debug: Log the calculation
+        self.get_logger().debug(f"📏 Distance calc: target=({target_x:.2f},{target_y:.2f}), current=({self.current_position['x']:.2f},{self.current_position['y']:.2f}), distance={distance:.3f}")
+        
+        return distance
+    
+    def calculate_angle_to_target(self, target_x, target_y):
+        """Calculate angle to target point."""
+        dx = target_x - self.current_position["x"]
+        dy = target_y - self.current_position["y"]
+        return math.atan2(dy, dx)
+    
+    def normalize_angle(self, angle):
+        """Normalize angle to [-pi, pi]."""
+        while angle > math.pi:
+            angle -= 2.0 * math.pi
+        while angle < -math.pi:
+            angle += 2.0 * math.pi
+        return angle
+    
+    def align_to_target(self, target_x, target_y):
+        """Fine-tune orientation to face the target after position is reached."""
+        self.enhanced_log("🔄 Fine-tuning orientation to face target...")
+        target_angle = self.calculate_angle_to_target(target_x, target_y)
+        angle_diff = self.normalize_angle(target_angle - self.current_position["yaw"])
+        
+        freq = 10.0
+        period = Duration(seconds=1.0 / freq)
+        max_iterations = int(30 * freq)  # 30s max for alignment
+        iteration_count = 0
+        
+        while rclpy.ok() and iteration_count < max_iterations and abs(angle_diff) > self.angle_tolerance:
+            iteration_count += 1
+            rclpy.spin_once(self, timeout_sec=0.0)
+            
+            angle_diff = self.normalize_angle(target_angle - self.current_position["yaw"])
+            twist = Twist()
+            twist.linear.x = 0.0
+            twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+            self.cmd_vel_publisher.publish(twist)
+            self.get_clock().sleep_for(period)
+        
+        self.stop_robot()
+        final_angle_diff = abs(self.normalize_angle(target_angle - self.current_position["yaw"]))
+        self.enhanced_log(f"✅ Orientation aligned (diff: {final_angle_diff:.3f} rad)")
+    
+    def move_to_target(self, target_x, target_y):
+        """Move robot to target position."""
+        self.enhanced_log(f"🎯 Moving to ({target_x:.2f}, {target_y:.2f})")
+        self.log_to_file(f"Navigation started to target: ({target_x:.2f}, {target_y:.2f})")
+        
+        freq = 10.0
+        period = Duration(seconds=1.0 / freq)
+        max_iterations = int(300 * freq)  # Increased to 5 minutes for longer paths
+        iteration_count = 0
+        last_distance = float('inf')
+        stuck_counter = 0
+        debug_interval = 20  # Log detailed state every 20 iterations (~2s)
+        is_moving_forward = False  # Track if command has linear.x > 0
+        
+        while rclpy.ok() and iteration_count < max_iterations:
+            iteration_count += 1
+            
+            # Process ROS callbacks to get latest odometry
+            rclpy.spin_once(self, timeout_sec=0.0)
+            
+            # Update package position if attached (make it follow the robot)
+            self.update_package_position()
+            
+            # Calculate distance and angle to target
+            distance = self.calculate_distance(target_x, target_y)
+            
+            self.log_to_file(f"Distance check: {distance:.3f} < {self.position_tolerance} = {distance < self.position_tolerance}")
+            
+            # Simple proximity detection - stop immediately when close to target
+            if distance < self.position_tolerance:
+                self.enhanced_log(f"🎯 Close to target! Distance: {distance:.3f}")
+                self.log_to_file(f"Target reached! Final distance: {distance:.3f}")
+                self.stop_robot()
+                self.align_to_target(target_x, target_y)  # Align orientation
+                self.enhanced_log(f"✅ Reached and aligned to target ({target_x:.2f}, {target_y:.2f}) - Final distance: {distance:.3f}")
+                self.stuck_recovery_count = 0  # Reset for next nav
+                return  # Exit function completely
+            
+            # Calculate angle to target
+            target_angle = self.calculate_angle_to_target(target_x, target_y)
+            angle_diff = self.normalize_angle(target_angle - self.current_position["yaw"])
+            
+            # Create velocity command
+            twist = Twist()
+            if abs(angle_diff) > 0.5:  # Reduced threshold for earlier turning (28 degrees)
+                # Pure rotation - stop and turn (no forward to avoid pushing into walls)
+                twist.linear.x = 0.0
+                twist.angular.z = self.angular_speed if angle_diff > 0 else -self.angular_speed
+                is_moving_forward = False
+                if iteration_count % debug_interval == 0:
+                    self.log_to_file(f"Turning only: angular_z={twist.angular.z:.2f}")
+            else:
+                # Good direction - move forward with minor corrections
+                # Constant speed for simplicity
+                twist.linear.x = self.linear_speed
+                twist.angular.z = angle_diff * (self.angular_speed / math.pi)  # Proportional up to max speed
+                is_moving_forward = True
+                if iteration_count % debug_interval == 0:
+                    self.log_to_file(f"Moving forward: linear_x={twist.linear.x:.2f}, angular_z={twist.angular.z:.2f}")
+            
+            if iteration_count % debug_interval == 0:
+                self.log_to_file(f"Publishing twist: linear.x={twist.linear.x:.2f}, angular.z={twist.angular.z:.2f}")
+            
+            # Publish the command
+            self.cmd_vel_publisher.publish(twist)
+            
+            # Check if we're making progress (anti-stuck mechanism) - ONLY when moving forward
+            if is_moving_forward:
+                if abs(distance - last_distance) < self.min_progress_threshold:
+                    stuck_counter += 1
+                    if stuck_counter > int(3 * freq) and self.stuck_recovery_count < 3:  # Limit to 3 recoveries per nav
+                        self.enhanced_log("🚨 Robot appears stuck (possibly against wall), executing recovery maneuver...")
+                        self.log_to_file("Robot stuck - executing enhanced recovery: reverse then turn")
+                        self.execute_stuck_recovery()
+                        stuck_counter = 0
+                        last_distance = distance  # Reset to avoid immediate re-trigger
+                        self.stuck_recovery_count += 1
+                        self.enhanced_log(f"🔄 Recovery #{self.stuck_recovery_count} executed")
+                    elif self.stuck_recovery_count >= 3:
+                        self.enhanced_log("⚠️ Max recoveries reached—aborting nav to avoid loops")
+                        self.log_to_file("Max recoveries reached - aborting navigation")
+                        self.stop_robot()
+                        self.stuck_recovery_count = 0  # Reset for next nav
+                        return  # Early exit
+                else:
+                    stuck_counter = 0
+                    if stuck_counter == 0:  # Reset count on progress
+                        self.stuck_recovery_count = 0
+            else:
+                # Reset counter during turns to avoid false stuck
+                stuck_counter = 0
+            
+            last_distance = distance
+            
+            # Log current state for debugging (less frequently)
+            if iteration_count % debug_interval == 0:
+                self.log_to_file(f"Current pos: ({self.current_position['x']:.2f}, {self.current_position['y']:.2f}, yaw: {self.current_position['yaw']:.2f})")
+                self.log_to_file(f"Target: ({target_x:.2f}, {target_y:.2f}), Distance: {distance:.2f}, Angle diff: {angle_diff:.2f}")
+            
+            # Sleep for the rate period
+            self.get_clock().sleep_for(period)
+        
+        # If we exit the loop, log why
+        self.log_to_file(f"Exited loop: rclpy.ok()={rclpy.ok()}, iteration_count={iteration_count}, max_iterations={max_iterations}")
+        
+        # Safety: Always stop at the end if we exit the loop without reaching target
+        self.enhanced_log(f"⚠️  Movement timed out after {max_iterations / freq:.1f}s. Final distance: {self.calculate_distance(target_x, target_y):.2f}")
+        self.log_to_file(f"Navigation timeout - final distance: {self.calculate_distance(target_x, target_y):.2f}")
+        self.stop_robot()
+        self.stuck_recovery_count = 0  # Reset for next nav
+        
+        # Force stop for safety
+        for _ in range(10):
+            stop_twist = Twist()
+            self.cmd_vel_publisher.publish(stop_twist)
+            time.sleep(0.1)
+    
+    def execute_stuck_recovery(self):
+        """Enhanced recovery maneuver: reverse straight, then turn randomly to escape."""
+        self.enhanced_log("🔄 Recovery Phase 1: Reversing...")
+        
+        # Phase 1: Reverse straight for ~1 second
+        recovery_twist = Twist()
+        recovery_twist.linear.x = -self.reverse_speed
+        recovery_twist.angular.z = 0.0
+        for _ in range(10):  # 1 second at 10Hz
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        # Phase 2: Turn in place for ~1 second (random direction for variety)
+        turn_dir = random.choice([-1, 1])
+        recovery_twist.linear.x = 0.0
+        recovery_twist.angular.z = self.angular_speed * turn_dir
+        for _ in range(10):
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        # Phase 3: Small forward nudge to clear any minor jams
+        recovery_twist.linear.x = self.linear_speed * 0.5  # Half speed
+        recovery_twist.angular.z = 0.0
+        for _ in range(5):  # 0.5 seconds
+            self.cmd_vel_publisher.publish(recovery_twist)
+            time.sleep(0.1)
+        
+        self.enhanced_log("🔄 Recovery maneuver completed")
+        self.log_to_file("Stuck recovery executed: reverse + turn + nudge")
+    
+    def stop_robot(self):
+        """Stop the robot."""
+        twist = Twist()  # All values default to 0.0
+        self.get_logger().info("🛑 Stopping robot...")
+        
+        # Send stop command multiple times to ensure it's received
+        for i in range(10):
+            self.cmd_vel_publisher.publish(twist)
+            time.sleep(0.05)  # Small delay between commands
+        
+        self.get_logger().info("✅ Stop command sent")
+    
+    def attach_package(self):
+        """Attach package to robot by positioning it exactly on top."""
+        self.enhanced_log("📦 Attaching package...")
+        
+        try:
+            import subprocess
+            
+            # Use exact current robot position for precise placement
+            package_x = self.current_position["x"]
+            package_y = self.current_position["y"] 
+            package_z = 0.6  # Height on top of robot (adjust if robot model height differs)
+            
+            self.log_to_file(f"Attempting to attach package exactly at robot position: ({package_x:.3f}, {package_y:.3f}, {package_z:.3f})")
+            
+            # Move package to exact robot position on top
+            move_cmd = [
+                'gz', 'service', '-s', '/world/warehouse_world/set_pose',
+                '--reqtype', 'gz.msgs.Pose',
+                '--reptype', 'gz.msgs.Boolean',
+                '--timeout', '5000',
+                '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
+            ]
+            
+            result = subprocess.run(move_cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                self.package_attached = True
+                self.enhanced_log("✅ Package positioned exactly on robot!")
+                self.log_to_file("Package successfully attached to robot")
+                
+                # Exact following: zero offset in x/y, fixed z
+                self.package_offset = {"x": 0.0, "y": 0.0, "z": 0.6}
+                
+            else:
+                self.enhanced_log(f"❌ Failed to move package: {result.stderr}")
+                self.log_to_file(f"Package attachment failed: {result.stderr}")
+                
+        except Exception as e:
+            self.enhanced_log(f"❌ Error attaching package: {e}")
+            self.log_to_file(f"Package attachment error: {str(e)}")
+    
+    def update_package_position(self):
+        """Update package position to follow the robot exactly if attached."""
+        if not self.package_attached:
+            return
+        
+        current_time = time.time()
+        if current_time - self.last_package_update_time < 0.2:  # Throttle to ~5Hz
+            return
+        self.last_package_update_time = current_time
+        
+        try:
+            import subprocess
+            
+            # Exact new package position: robot pos + zero x/y offset, fixed z
+            package_x = self.current_position["x"] + self.package_offset["x"]
+            package_y = self.current_position["y"] + self.package_offset["y"]
+            package_z = self.package_offset["z"]
+            
+            # Move package to follow robot exactly
+            move_cmd = [
+                'gz', 'service', '-s', '/world/warehouse_world/set_pose',
+                '--reqtype', 'gz.msgs.Pose',
+                '--reptype', 'gz.msgs.Boolean',
+                '--timeout', '1000',  # Shorter timeout for frequent updates
+                '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
+            ]
+            
+            subprocess.run(move_cmd, capture_output=True, text=True)
+            
+        except Exception as e:
+            # Don't spam errors for package following
+            pass
+    
+    def detach_package(self):
+        """Detach package from robot by dropping it exactly at current location."""
+        self.enhanced_log("📦 Detaching package...")
+        
+        try:
+            import subprocess
+            
+            # Drop package exactly at current robot location
+            package_x = self.current_position["x"]
+            package_y = self.current_position["y"]
+            package_z = 0.15  # Ground level
+            
+            self.log_to_file(f"Attempting to detach package exactly at location: ({package_x:.3f}, {package_y:.3f}, {package_z:.3f})")
+            
+            drop_cmd = [
+                'gz', 'service', '-s', '/world/warehouse_world/set_pose',
+                '--reqtype', 'gz.msgs.Pose',
+                '--reptype', 'gz.msgs.Boolean',
+                '--timeout', '5000',
+                '--req', f'name: "pickup_package", position: {{x: {package_x}, y: {package_y}, z: {package_z}}}'
+            ]
+            
+            result = subprocess.run(drop_cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                self.package_attached = False
+                self.package_offset = None  # Clear offset
+                self.enhanced_log("✅ Package delivered successfully!")
+                self.log_to_file("Package successfully detached and delivered")
+            else:
+                self.enhanced_log(f"❌ Failed to drop package: {result.stderr}")
+                self.log_to_file(f"Package detachment failed: {result.stderr}")
+                # Still mark as detached for mission logic
+                self.package_attached = False
+                self.package_offset = None
+                
+        except Exception as e:
+            self.enhanced_log(f"❌ Error detaching package: {e}")
+            self.log_to_file(f"Package detachment error: {str(e)}")
+            # Still mark as detached for mission logic
+            self.package_attached = False
+            self.package_offset = None
+    
+    def go_to_package(self):
+        """Navigate to package location and pick it up."""
+        if self.package_attached:
+            self.enhanced_log("📦 Package already attached!")
+            return
+        
+        self.current_state = "moving_to_package"
+        package_pos = self.waypoints["package"]
+        
+        self.enhanced_log(f"🚗 Going to pickup package at ({package_pos['x']:.2f}, {package_pos['y']:.2f})")
+        self.log_to_file(f"Starting navigation to package location: ({package_pos['x']:.2f}, {package_pos['y']:.2f})")
+        
+        self.move_to_target(package_pos["x"], package_pos["y"])
+        
+        # Attach package exactly on top
+        time.sleep(1.0)  # Small delay for settling
+        self.attach_package()
+        self.current_state = "package_picked_up"
+        self.enhanced_log("✅ Package pickup phase completed")
+    
+    def go_to_destination(self):
+        """Navigate to destination and deliver package."""
+        if not self.package_attached:
+            self.enhanced_log("📦 No package to deliver! Pick up package first.")
+            return
+        
+        self.current_state = "moving_to_destination"
+        dest_pos = self.waypoints["destination"]
+        
+        self.enhanced_log(f"🚗 Delivering package to ({dest_pos['x']:.2f}, {dest_pos['y']:.2f})")
+        self.log_to_file(f"Starting navigation to destination: ({dest_pos['x']:.2f}, {dest_pos['y']:.2f})")
+        
+        self.move_to_target(dest_pos["x"], dest_pos["y"])
+        
+        # Detach package exactly at position
+        time.sleep(1.0)  # Small delay for settling
+        self.detach_package()
+        self.current_state = "package_delivered"
+        self.enhanced_log("✅ Package delivery phase completed")
+    
+    def return_to_start(self):
+        """Return to start position."""
+        self.current_state = "returning_to_start"
+        start_pos = self.waypoints["start"]
+        
+        self.enhanced_log(f"🚗 Returning to start position ({start_pos['x']:.2f}, {start_pos['y']:.2f})")
+        self.log_to_file(f"Starting navigation to start position: ({start_pos['x']:.2f}, {start_pos['y']:.2f})")
+        
+        self.move_to_target(start_pos["x"], start_pos["y"])
+        self.current_state = "idle"
+        self.enhanced_log("🏁 Return to start phase completed")
+    
+    def run_full_mission(self):
+        """Execute complete pickup and delivery mission."""
+        self.enhanced_log("🚀 Starting full delivery mission!")
+        
+        # Log mission start details
+        self.log_to_file("=" * 60)
+        self.log_to_file("MISSION START")
+        self.log_to_file("=" * 60)
+        start_time = datetime.now()
+        self.log_to_file(f"Mission start time: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Log waypoints
+        for name, pos in self.waypoints.items():
+            self.log_to_file(f"Waypoint {name}: ({pos['x']:.2f}, {pos['y']:.2f})")
+        
+        try:
+            # Phase 1: Go to package
+            self.enhanced_log("📍 PHASE 1: Going to package location")
+            self.go_to_package()
+            time.sleep(2.0)
+            
+            # Phase 2: Deliver package
+            self.enhanced_log("📍 PHASE 2: Delivering package to destination")
+            self.go_to_destination()
+            time.sleep(2.0)
+            
+            # Phase 3: Return to start
+            self.enhanced_log("📍 PHASE 3: Returning to start position")
+            self.return_to_start()
+            
+            # Mission completed successfully
+            end_time = datetime.now()
+            mission_duration = end_time - start_time
+            self.log_to_file("=" * 60)
+            self.log_to_file("MISSION COMPLETED SUCCESSFULLY")
+            self.log_to_file("=" * 60)
+            self.log_to_file(f"Mission end time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            self.log_to_file(f"Total mission duration: {mission_duration}")
+            self.enhanced_log("🏁 Mission completed successfully!")
+            
+        except Exception as e:
+            # Mission failed
+            end_time = datetime.now()
+            mission_duration = end_time - start_time
+            self.log_to_file("=" * 60)
+            self.log_to_file("MISSION FAILED")
+            self.log_to_file("=" * 60)
+            self.log_to_file(f"Mission end time: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            self.log_to_file(f"Mission duration before failure: {mission_duration}")
+            self.log_to_file(f"Error: {str(e)}")
+            self.enhanced_log(f"❌ Mission failed: {str(e)}")
+            raise
+    
+    def print_status(self):
+        """Print current robot status."""
+        pos = self.current_position
+        print(f"\n🤖 Robot Status:")
+        print(f"   Position: ({pos['x']:.2f}, {pos['y']:.2f})")
+        print(f"   State: {self.current_state}")
+        print(f"   Package: {'📦 Attached' if self.package_attached else '📭 Not attached'}")
+        print(f"   Waypoints:")
+        for name, pos in self.waypoints.items():
+            print(f"     {name}: ({pos['x']:.2f}, {pos['y']:.2f})")
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("🤖 Warehouse Robot Controller")
+        print("=" * 40)
+        print("Available commands:")
+        print("  pickup     - Go to package location and pick it up")
+        print("  deliver    - Go to destination and deliver package")
+        print("  return     - Return to start position")
+        print("  mission    - Execute full pickup and delivery mission")
+        print("  status     - Show current robot status")
+        print("  goto X Y   - Move to specific coordinates (e.g., goto 2.0 3.0)")
+        print("  stop       - Stop the robot immediately")
+        print("\nUsage: ros2 run warehouse_robot robot_controller.py <command> [args]")
+        return
+    
+    rclpy.init()
+    
+    command = sys.argv[1].lower()
+    
+    # Enable file logging for mission command
+    enable_logging = (command == "mission")
+    controller = WarehouseRobotController(enable_file_logging=enable_logging)
+    
+    try:
+        if command == "pickup":
+            controller.go_to_package()
+        elif command == "deliver":
+            controller.go_to_destination()
+        elif command == "return":
+            controller.return_to_start()
+        elif command == "mission":
+            controller.run_full_mission()
+        elif command == "status":
+            controller.print_status()
+        elif command == "stop":
+            controller.stop_robot()
+            controller.enhanced_log("🛑 Robot stopped by user command")
+        elif command == "goto":
+            if len(sys.argv) < 4:
+                print("❌ Usage: goto <x> <y>")
+                print("   Example: ros2 run warehouse_robot robot_controller.py goto 2.0 3.0")
+                return
+            try:
+                target_x = float(sys.argv[2])
+                target_y = float(sys.argv[3])
+                controller.enhanced_log(f"🎯 Moving to coordinates ({target_x:.2f}, {target_y:.2f})")
+                controller.move_to_target(target_x, target_y)
+                controller.enhanced_log(f"✅ Successfully reached ({target_x:.2f}, {target_y:.2f})")
+            except ValueError:
+                print("❌ Invalid coordinates. Please use numbers (e.g., goto 2.0 3.0)")
+        else:
+            print(f"❌ Unknown command: {command}")
+            return
+            
+    except KeyboardInterrupt:
+        print("\n🛑 Operation interrupted by user")
+        if enable_logging:
+            controller.log_to_file("Mission interrupted by user (Ctrl+C)")
+    finally:
+        controller.stop_robot()
+        if enable_logging:
+            controller.log_to_file("🏁 Mission logging ended")
+            if hasattr(controller, 'log_file') and controller.log_file:
+                print(f"\n📝 Mission logs saved to: {controller.log_file}")
+        controller.destroy_node()
+        rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

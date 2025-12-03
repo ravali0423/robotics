@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="warehouse_robot">
+
+  <!-- Include the iRobot Create3 description -->
+  <xacro:include filename="$(find irobot_create_description)/urdf/create3.urdf.xacro"/>
+
+  <!-- Create3 robot with namespace for warehouse operations -->
+  <xacro:create3 
+    namespace="warehouse_robot"
+    gazebo_controllers="$(find warehouse_robot)/config/control.yaml"
+    use_gazebo="true"
+    log_level="WARN"
+  />
+
+</robot>

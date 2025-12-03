@@ -7,24 +7,26 @@ from launch_ros.substitutions import FindPackageShare
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    # Get the UR5 URDF from the official ur_description package
+    # Get the URDF file path
     robot_description_content = Command([
         'xacro ', 
         PathJoinSubstitution([
-            FindPackageShare('ur_description'),
+            FindPackageShare('arm_simulation'),
             'urdf',
-            'ur.urdf.xacro'
-        ]),
-        ' name:=ur5',
-        ' ur_type:=ur5'
+            'robotic_hand.urdf.xacro'
+        ])
     ])
 
     robot_description = ParameterValue(robot_description_content, value_type=str)
 
     # RViz config file
-    rviz_config_file = os.path.join(get_package_share_directory('arm_simulation'), 'rviz', 'ur5_arm_working.rviz')
+    rviz_config_file = os.path.join(
+        get_package_share_directory('arm_simulation'), 
+        'rviz', 
+        'robotic_hand.rviz'
+    )
 
-    return LaunchDescription([
+    nodes_to_launch = [
         # Robot State Publisher
         Node(
             package='robot_state_publisher',
@@ -36,21 +38,34 @@ def generate_launch_description():
             }]
         ),
         
-        # Joint State Publisher GUI
+        # Enhanced Hand Controller Node
         Node(
-            package='joint_state_publisher_gui',
-            executable='joint_state_publisher_gui',
+            package='arm_simulation',
+            executable='enhanced_hand_controller.py',
             output='screen',
             parameters=[{
                 'use_sim_time': False
             }]
-        ),
-        
-        # RViz
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            output='screen',
-            arguments=['-d', rviz_config_file]
         )
-    ])
+    ]
+    
+    # Add RViz with config if it exists, otherwise without config
+    if os.path.exists(rviz_config_file):
+        nodes_to_launch.append(
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                output='screen',
+                arguments=['-d', rviz_config_file]
+            )
+        )
+    else:
+        nodes_to_launch.append(
+            Node(
+                package='rviz2',
+                executable='rviz2',
+                output='screen'
+            )
+        )
+
+    return LaunchDescription(nodes_to_launch)

@@ -171,6 +171,52 @@ ros2 topic pub /left/finger_count std_msgs/msg/Int32 '{data: 3}'
 ros2 topic pub /right/finger_count std_msgs/msg/Int32 '{data: 5}'
 ```
 
+### Humanoid Upper Body Simulation
+
+Launch the humanoid upper body system with a realistic human-like model (face, head, shoulders, arms, and hands):
+
+```bash
+ros2 launch arm_simulation humanoid_upper_body.launch.py
+```
+
+This displays:
+
+- **Face** with eyes and mouth
+- **Head** and neck
+- **Shoulders** connecting both arms
+- **Arms** (upper arm, forearm, wrist)
+- **Hands** with full finger articulation for ASL gestures
+- **Torso** in a neutral pose
+
+#### Humanoid Control Commands:
+
+The humanoid uses the same control interfaces as the dual-hand system:
+
+```bash
+# Two-character words (right hand = 1st char, left hand = 2nd char)
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "ab"}'
+
+# Single letters (both hands)
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "a"}'
+
+# Combined finger count (0–10)
+ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 8}'
+
+# Independent hand control
+ros2 topic pub /left/letter_command std_msgs/msg/String '{data: "l"}'
+ros2 topic pub /right/letter_command std_msgs/msg/String '{data: "r"}'
+```
+
+#### Real-World ASL Display
+
+The humanoid body provides a natural, human-like context for ASL gestures:
+
+- Head and facial expressions provide context
+- Torso remains stable for gesture foundation
+- Both arms and hands visible in realistic proportions
+- Shoulder positioning adds authenticity to signs
+- Perfect for demonstrating ASL to hearing individuals
+
 ### Manual Control Commands
 
 #### Basic gesture commands:

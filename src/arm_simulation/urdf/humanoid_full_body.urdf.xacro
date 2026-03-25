@@ -1,0 +1,466 @@
+<?xml version="1.0"?>
+<robot name="humanoid_full_body" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- ==================== INCLUDES ==================== -->
+  <!-- Include hand articulation macros from dual_robotic_hands -->
+  <xacro:include filename="$(find arm_simulation)/urdf/hand_macros.urdf.xacro"/>
+
+  <!-- ==================== BODY DIMENSIONS ==================== -->
+  <!-- Head -->
+  <xacro:property name="head_radius" value="0.15" />
+  <xacro:property name="face_width" value="0.28" />
+  <xacro:property name="face_height" value="0.32" />
+  <xacro:property name="face_depth" value="0.03" />
+  
+  <!-- Neck -->
+  <xacro:property name="neck_length" value="0.12" />
+  <xacro:property name="neck_radius" value="0.04" />
+  
+  <!-- Shoulders -->
+  <xacro:property name="shoulder_width" value="0.45" />
+  <xacro:property name="shoulder_depth" value="0.15" />
+  <xacro:property name="shoulder_height" value="0.08" />
+  
+  <!-- Torso -->
+  <xacro:property name="torso_width" value="0.40" />
+  <xacro:property name="torso_height" value="0.45" />
+  <xacro:property name="torso_depth" value="0.20" />
+  
+  <!-- Arms -->
+  <xacro:property name="upper_arm_length" value="0.35" />
+  <xacro:property name="upper_arm_radius" value="0.05" />
+  <xacro:property name="forearm_length" value="0.30" />
+  <xacro:property name="forearm_radius" value="0.038" />
+  <xacro:property name="wrist_length" value="0.08" />
+  <xacro:property name="wrist_radius" value="0.035" />
+  
+  <!-- ==================== MATERIALS ==================== -->
+  <material name="skin_face">
+    <color rgba="0.96 0.78 0.62 1.0"/>
+  </material>
+  
+  <material name="skin_body">
+    <color rgba="0.95 0.76 0.60 1.0"/>
+  </material>
+  
+  <material name="skin_hand">
+    <color rgba="0.96 0.78 0.62 1.0"/>
+  </material>
+  
+  <material name="clothing_torso">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+  
+  <material name="eyes">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+  
+  <material name="mouth">
+    <color rgba="0.8 0.3 0.3 1.0"/>
+  </material>
+
+  <!-- ==================== WORLD LINK ==================== -->
+  <link name="world">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== TORSO (MAIN BODY) ==================== -->
+  <link name="torso">
+    <visual>
+      <geometry>
+        <box size="${torso_width} ${torso_height} ${torso_depth}"/>
+      </geometry>
+      <material name="clothing_torso"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <visual>
+      <geometry>
+        <box size="${torso_width * 0.6} 0.08 ${torso_depth * 1.2}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 ${torso_height/2 - 0.04} 0" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <box size="${torso_width} ${torso_height} ${torso_depth}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="5.0"/>
+      <inertia ixx="0.2" ixy="0" ixz="0" iyy="0.2" iyz="0" izz="0.15"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="torso_joint" type="fixed">
+    <parent link="world"/>
+    <child link="torso"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== NECK AND HEAD ==================== -->
+  <link name="neck">
+    <visual>
+      <geometry>
+        <cylinder radius="${neck_radius}" length="${neck_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${neck_radius}" length="${neck_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.005"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="neck_joint" type="fixed">
+    <parent link="torso"/>
+    <child link="neck"/>
+    <origin xyz="0 ${torso_height/2 + neck_length/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="head">
+    <visual>
+      <geometry>
+        <sphere radius="${head_radius}"/>
+      </geometry>
+      <material name="skin_face"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <visual>
+      <geometry>
+        <box size="${face_width} ${face_height} ${face_depth}"/>
+      </geometry>
+      <material name="skin_face"/>
+      <origin xyz="0 0 ${head_radius - face_depth/2}" rpy="0 0 0"/>
+    </visual>
+    
+    <visual>
+      <geometry>
+        <sphere radius="0.018"/>
+      </geometry>
+      <material name="eyes"/>
+      <origin xyz="${face_width/4} ${face_height/4} ${head_radius + 0.005}" rpy="0 0 0"/>
+    </visual>
+    
+    <visual>
+      <geometry>
+        <sphere radius="0.018"/>
+      </geometry>
+      <material name="eyes"/>
+      <origin xyz="${-face_width/4} ${face_height/4} ${head_radius + 0.005}" rpy="0 0 0"/>
+    </visual>
+    
+    <visual>
+      <geometry>
+        <box size="${face_width/3} 0.015 0.01"/>
+      </geometry>
+      <material name="mouth"/>
+      <origin xyz="0 ${-face_height/6} ${head_radius + 0.005}" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <sphere radius="${head_radius}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="3.0"/>
+      <inertia ixx="0.08" ixy="0" ixz="0" iyy="0.08" iyz="0" izz="0.08"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="head_joint" type="fixed">
+    <parent link="neck"/>
+    <child link="head"/>
+    <origin xyz="0 ${neck_length/2 + head_radius} 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== SHOULDERS ==================== -->
+  <link name="shoulders">
+    <visual>
+      <geometry>
+        <box size="${shoulder_width} ${shoulder_height} ${shoulder_depth}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <box size="${shoulder_width} ${shoulder_height} ${shoulder_depth}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.02" ixy="0" ixz="0" iyy="0.05" iyz="0" izz="0.05"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="shoulders_joint" type="fixed">
+    <parent link="torso"/>
+    <child link="shoulders"/>
+    <origin xyz="0 ${torso_height/2 - shoulder_height/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== LEFT ARM ==================== -->
+  <link name="left_upper_arm">
+    <visual>
+      <geometry>
+        <cylinder radius="${upper_arm_radius}" length="${upper_arm_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${upper_arm_radius}" length="${upper_arm_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.005"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_shoulder_joint" type="fixed">
+    <parent link="shoulders"/>
+    <child link="left_upper_arm"/>
+    <origin xyz="${shoulder_width/2} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="left_forearm">
+    <visual>
+      <geometry>
+        <cylinder radius="${forearm_radius}" length="${forearm_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${forearm_radius}" length="${forearm_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="1.5"/>
+      <inertia ixx="0.008" ixy="0" ixz="0" iyy="0.008" iyz="0" izz="0.003"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_elbow_joint" type="fixed">
+    <parent link="left_upper_arm"/>
+    <child link="left_forearm"/>
+    <origin xyz="0 ${-upper_arm_length/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="left_wrist">
+    <visual>
+      <geometry>
+        <cylinder radius="${wrist_radius}" length="${wrist_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${wrist_radius}" length="${wrist_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_wrist_joint" type="fixed">
+    <parent link="left_forearm"/>
+    <child link="left_wrist"/>
+    <origin xyz="0 ${-forearm_length/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- LEFT HAND PALM BASE -->
+  <link name="left_hand_base">
+    <visual>
+      <geometry>
+        <box size="0.110 0.082 0.018"/>
+      </geometry>
+      <material name="skin_hand"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <box size="0.110 0.082 0.018"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="0.6"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="left_hand_base_joint" type="fixed">
+    <parent link="left_wrist"/>
+    <child link="left_hand_base"/>
+    <origin xyz="0 ${-wrist_length/2} 0" rpy="0 1.5708 0"/>
+  </joint>
+
+  <!-- ==================== RIGHT ARM ==================== -->
+  <link name="right_upper_arm">
+    <visual>
+      <geometry>
+        <cylinder radius="${upper_arm_radius}" length="${upper_arm_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${upper_arm_radius}" length="${upper_arm_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="2.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.005"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_shoulder_joint" type="fixed">
+    <parent link="shoulders"/>
+    <child link="right_upper_arm"/>
+    <origin xyz="${-shoulder_width/2} 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="right_forearm">
+    <visual>
+      <geometry>
+        <cylinder radius="${forearm_radius}" length="${forearm_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${forearm_radius}" length="${forearm_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="1.5"/>
+      <inertia ixx="0.008" ixy="0" ixz="0" iyy="0.008" iyz="0" izz="0.003"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_elbow_joint" type="fixed">
+    <parent link="right_upper_arm"/>
+    <child link="right_forearm"/>
+    <origin xyz="0 ${-upper_arm_length/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="right_wrist">
+    <visual>
+      <geometry>
+        <cylinder radius="${wrist_radius}" length="${wrist_length}"/>
+      </geometry>
+      <material name="skin_body"/>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <cylinder radius="${wrist_radius}" length="${wrist_length}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.002" ixy="0" ixz="0" iyy="0.002" iyz="0" izz="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_wrist_joint" type="fixed">
+    <parent link="right_forearm"/>
+    <child link="right_wrist"/>
+    <origin xyz="0 ${-forearm_length/2} 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- RIGHT HAND PALM BASE -->
+  <link name="right_hand_base">
+    <visual>
+      <geometry>
+        <box size="0.110 0.082 0.018"/>
+      </geometry>
+      <material name="skin_hand"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    
+    <collision>
+      <geometry>
+        <box size="0.110 0.082 0.018"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+    
+    <inertial>
+      <mass value="0.6"/>
+      <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <joint name="right_hand_base_joint" type="fixed">
+    <parent link="right_wrist"/>
+    <child link="right_hand_base"/>
+    <origin xyz="0 ${-wrist_length/2} 0" rpy="0 1.5708 0"/>
+  </joint>
+
+</robot>

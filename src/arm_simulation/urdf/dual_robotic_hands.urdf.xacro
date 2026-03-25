@@ -1,33 +1,48 @@
 <?xml version="1.0"?>
 <robot name="dual_robotic_hands" xmlns:xacro="http://wiki.ros.org/xacro">
 
-  <!-- Dimensions -->
-  <xacro:property name="hand_width" value="0.08" />
-  <xacro:property name="hand_length" value="0.12" />
-  <xacro:property name="hand_height" value="0.01" />
-  <xacro:property name="finger_width" value="0.015" />
-  <xacro:property name="finger_length" value="0.03" />
-  <xacro:property name="finger_height" value="0.01" />
-  <xacro:property name="thumb_width" value="0.018" />
-  <xacro:property name="thumb_length" value="0.025" />
+  <!-- Palm dimensions -->
+  <xacro:property name="hand_width"  value="0.082" />
+  <xacro:property name="hand_length" value="0.110" />
+  <xacro:property name="hand_height" value="0.018" />
 
-  <!-- Materials -->
-  <material name="palm_material">
-    <color rgba="0.98 0.90 0.76 1.0"/>
+  <!-- Finger segment lengths -->
+  <xacro:property name="proximal_length" value="0.036" />
+  <xacro:property name="middle_length"   value="0.026" />
+  <xacro:property name="distal_length"   value="0.020" />
+
+  <!-- Finger radii (tapers toward tip) -->
+  <xacro:property name="finger_r0" value="0.0068" />   <!-- base knuckle -->
+  <xacro:property name="finger_r1" value="0.0062" />   <!-- proximal segment -->
+  <xacro:property name="finger_r2" value="0.0056" />   <!-- middle segment -->
+  <xacro:property name="finger_r3" value="0.0048" />   <!-- distal segment -->
+
+  <!-- Thumb dimensions -->
+  <xacro:property name="thumb_proximal_length" value="0.032" />
+  <xacro:property name="thumb_distal_length"   value="0.024" />
+  <xacro:property name="thumb_r0" value="0.0082" />
+  <xacro:property name="thumb_r1" value="0.0075" />
+  <xacro:property name="thumb_r2" value="0.0064" />
+
+  <!-- Materials — skin tones with red nail polish -->
+  <material name="skin_palm">
+    <color rgba="0.96 0.78 0.62 1.0"/>
   </material>
-  <material name="finger_material">
-    <color rgba="0.92 0.83 0.68 1.0"/>
+  <material name="skin_finger">
+    <color rgba="0.93 0.74 0.58 1.0"/>
   </material>
-  <material name="nail_material">
-    <color rgba="0.95 0.92 0.88 1.0"/>
+  <material name="skin_knuckle">
+    <color rgba="0.88 0.68 0.52 1.0"/>
+  </material>
+  <material name="skin_tip">
+    <color rgba="0.97 0.80 0.66 1.0"/>
+  </material>
+  <material name="skin_nail">
+    <color rgba="1.0 0.75 0.80 0.7"/>
   </material>
 
   <!-- World link -->
   <link name="world">
-    <visual>
-      <geometry><box size="0.001 0.001 0.001"/></geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-    </visual>
     <inertial>
       <mass value="0.001"/>
       <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
@@ -35,64 +50,112 @@
     </inertial>
   </link>
 
-  <!-- Finger macro
-       axis_z: 1 for left hand, -1 for right hand.
-       Negating the base joint axis mirrors abduction/adduction so the same
-       controller angle produces the anatomically correct movement on both hands. -->
+  <!-- ─────────────────────────────────────────────────────────────────────
+       FINGER MACRO
+       Each segment is a cylinder oriented along X, with:
+         - a knuckle sphere at the base
+         - a tapered body
+         - a rounded sphere at the fingertip (distal link only)
+       axis_z = 1 (left) or -1 (right) mirrors abduction direction.
+       ───────────────────────────────────────────────────────────────────── -->
   <xacro:macro name="finger" params="prefix parent_link x_pos y_pos z_pos rotation axis_z">
 
+    <!-- Proximal phalanx -->
     <link name="${prefix}_proximal">
+      <!-- Knuckle sphere at attachment point -->
       <visual>
-        <geometry><box size="${finger_length} ${finger_width} ${finger_height}"/></geometry>
-        <material name="finger_material"/>
-        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${finger_r0}"/></geometry>
+        <material name="skin_knuckle"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <!-- Main cylinder body -->
+      <visual>
+        <geometry><cylinder radius="${finger_r1}" length="${proximal_length}"/></geometry>
+        <material name="skin_finger"/>
+        <origin xyz="${proximal_length/2} 0 0" rpy="0 1.5708 0"/>
       </visual>
       <collision>
-        <geometry><box size="${finger_length} ${finger_width} ${finger_height}"/></geometry>
-        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${proximal_length} ${finger_r1*2} ${finger_r1*2}"/></geometry>
+        <origin xyz="${proximal_length/2} 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
         <mass value="0.05"/>
         <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+        <origin xyz="${proximal_length/2} 0 0" rpy="0 0 0"/>
       </inertial>
     </link>
 
+    <!-- Middle phalanx -->
     <link name="${prefix}_middle">
+      <!-- Inter-phalangeal knuckle -->
       <visual>
-        <geometry><box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/></geometry>
-        <material name="finger_material"/>
-        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${finger_r1 * 0.92}"/></geometry>
+        <material name="skin_knuckle"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <!-- Cylinder body (slightly thinner) -->
+      <visual>
+        <geometry><cylinder radius="${finger_r2}" length="${middle_length}"/></geometry>
+        <material name="skin_finger"/>
+        <origin xyz="${middle_length/2} 0 0" rpy="0 1.5708 0"/>
       </visual>
       <collision>
-        <geometry><box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/></geometry>
-        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${middle_length} ${finger_r2*2} ${finger_r2*2}"/></geometry>
+        <origin xyz="${middle_length/2} 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
         <mass value="0.03"/>
         <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+        <origin xyz="${middle_length/2} 0 0" rpy="0 0 0"/>
       </inertial>
     </link>
 
+    <!-- Distal phalanx (fingertip) -->
     <link name="${prefix}_distal">
+      <!-- DIP knuckle -->
       <visual>
-        <geometry><box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/></geometry>
-        <material name="nail_material"/>
-        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${finger_r2 * 0.90}"/></geometry>
+        <material name="skin_knuckle"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <!-- Cylinder body (thinner still) -->
+      <visual>
+        <geometry><cylinder radius="${finger_r3}" length="${distal_length}"/></geometry>
+        <material name="skin_finger"/>
+        <origin xyz="${distal_length/2} 0 0" rpy="0 1.5708 0"/>
+      </visual>
+      <!-- Rounded fingertip sphere -->
+      <visual>
+        <geometry><sphere radius="${finger_r3 * 1.1}"/></geometry>
+        <material name="skin_tip"/>
+        <origin xyz="${distal_length} 0 0" rpy="0 0 0"/>
       </visual>
       <collision>
-        <geometry><box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/></geometry>
-        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${distal_length} ${finger_r3*2} ${finger_r3*2}"/></geometry>
+        <origin xyz="${distal_length/2} 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
         <mass value="0.02"/>
         <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+        <origin xyz="${distal_length/2} 0 0" rpy="0 0 0"/>
       </inertial>
     </link>
 
-    <!-- Base joint: axis_z flipped for right hand so abduction mirrors correctly -->
+    <!-- Nail — separate link so RViz2 renders it in its own color -->
+    <link name="${prefix}_nail">
+      <visual>
+        <geometry><box size="${distal_length * 0.75} ${finger_r3 * 1.8} ${finger_r3 * 0.6}"/></geometry>
+        <material name="skin_nail"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Joints -->
     <joint name="${prefix}_base_joint" type="revolute">
       <parent link="${parent_link}"/>
       <child link="${prefix}_proximal"/>
@@ -101,11 +164,10 @@
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
 
-    <!-- Flexion joints: axis unchanged, bending direction is the same for both hands -->
     <joint name="${prefix}_proximal_joint" type="revolute">
       <parent link="${prefix}_proximal"/>
       <child link="${prefix}_middle"/>
-      <origin xyz="${finger_length} 0 0" rpy="0 0 0"/>
+      <origin xyz="${proximal_length} 0 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
@@ -113,47 +175,87 @@
     <joint name="${prefix}_middle_joint" type="revolute">
       <parent link="${prefix}_middle"/>
       <child link="${prefix}_distal"/>
-      <origin xyz="${finger_length*0.8} 0 0" rpy="0 0 0"/>
+      <origin xyz="${middle_length} 0 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
 
+    <joint name="${prefix}_nail_joint" type="fixed">
+      <parent link="${prefix}_distal"/>
+      <child link="${prefix}_nail"/>
+      <origin xyz="${distal_length * 0.5} 0 ${finger_r3 * 1.2}" rpy="0 0 0"/>
+    </joint>
+
   </xacro:macro>
 
-  <!-- Thumb macro — same axis_z mirroring logic as finger -->
+  <!-- ─────────────────────────────────────────────────────────────────────
+       THUMB MACRO — shorter, thicker, only two phalanges
+       ───────────────────────────────────────────────────────────────────── -->
   <xacro:macro name="thumb" params="prefix parent_link x_pos y_pos z_pos rotation axis_z">
 
+    <!-- Proximal phalanx -->
     <link name="${prefix}_proximal">
       <visual>
-        <geometry><box size="${thumb_length} ${thumb_width} ${finger_height}"/></geometry>
-        <material name="finger_material"/>
-        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${thumb_r0}"/></geometry>
+        <material name="skin_knuckle"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <visual>
+        <geometry><cylinder radius="${thumb_r1}" length="${thumb_proximal_length}"/></geometry>
+        <material name="skin_finger"/>
+        <origin xyz="${thumb_proximal_length/2} 0 0" rpy="0 1.5708 0"/>
       </visual>
       <collision>
-        <geometry><box size="${thumb_length} ${thumb_width} ${finger_height}"/></geometry>
-        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${thumb_proximal_length} ${thumb_r1*2} ${thumb_r1*2}"/></geometry>
+        <origin xyz="${thumb_proximal_length/2} 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
         <mass value="0.04"/>
         <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+        <origin xyz="${thumb_proximal_length/2} 0 0" rpy="0 0 0"/>
       </inertial>
     </link>
 
+    <!-- Distal phalanx (thumb tip) -->
     <link name="${prefix}_distal">
       <visual>
-        <geometry><box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/></geometry>
-        <material name="nail_material"/>
-        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+        <geometry><sphere radius="${thumb_r1 * 0.90}"/></geometry>
+        <material name="skin_knuckle"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <visual>
+        <geometry><cylinder radius="${thumb_r2}" length="${thumb_distal_length}"/></geometry>
+        <material name="skin_finger"/>
+        <origin xyz="${thumb_distal_length/2} 0 0" rpy="0 1.5708 0"/>
+      </visual>
+      <!-- Rounded thumb tip -->
+      <visual>
+        <geometry><sphere radius="${thumb_r2 * 1.15}"/></geometry>
+        <material name="skin_tip"/>
+        <origin xyz="${thumb_distal_length} 0 0" rpy="0 0 0"/>
       </visual>
       <collision>
-        <geometry><box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/></geometry>
-        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+        <geometry><box size="${thumb_distal_length} ${thumb_r2*2} ${thumb_r2*2}"/></geometry>
+        <origin xyz="${thumb_distal_length/2} 0 0" rpy="0 0 0"/>
       </collision>
       <inertial>
         <mass value="0.025"/>
         <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+        <origin xyz="${thumb_distal_length/2} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Thumbnail — separate link for independent color -->
+    <link name="${prefix}_nail">
+      <visual>
+        <geometry><box size="${thumb_distal_length * 0.75} ${thumb_r2 * 2.0} ${thumb_r2 * 0.6}"/></geometry>
+        <material name="skin_nail"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <inertial>
+        <mass value="0.001"/>
+        <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
       </inertial>
     </link>
 
@@ -168,25 +270,32 @@
     <joint name="${prefix}_proximal_joint" type="revolute">
       <parent link="${prefix}_proximal"/>
       <child link="${prefix}_distal"/>
-      <origin xyz="${thumb_length} 0 0" rpy="0 0 0"/>
+      <origin xyz="${thumb_proximal_length} 0 0" rpy="0 0 0"/>
       <axis xyz="0 1 0"/>
       <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
     </joint>
 
+    <joint name="${prefix}_nail_joint" type="fixed">
+      <parent link="${prefix}_distal"/>
+      <child link="${prefix}_nail"/>
+      <origin xyz="${thumb_distal_length * 0.5} 0 ${thumb_r2 * 1.2}" rpy="0 0 0"/>
+    </joint>
+
   </xacro:macro>
 
-  <!-- Hand assembly macro
-       mirror= 1 → left  hand: thumb at y=-0.030, base joints rotate around +Z
-       mirror=-1 → right hand: thumb at y=+0.030, base joints rotate around -Z
-       The negated axis_z makes the right hand respond to the same controller
-       angles with anatomically mirrored movement. Flexion (bending) joints
-       keep axis xyz="0 1 0" unchanged so fingers still curl toward the screen. -->
+  <!-- ─────────────────────────────────────────────────────────────────────
+       HAND ASSEMBLY
+       mirror= 1 → left  hand (thumb at -Y, base joints rotate around +Z)
+       mirror=-1 → right hand (thumb at +Y, base joints rotate around -Z)
+       ───────────────────────────────────────────────────────────────────── -->
   <xacro:macro name="hand_assembly" params="side y_offset mirror">
 
+    <!-- Palm: main box body -->
     <link name="${side}_hand_base">
+      <!-- Main palm -->
       <visual>
         <geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
-        <material name="palm_material"/>
+        <material name="skin_palm"/>
         <origin xyz="0 0 0" rpy="0 0 0"/>
       </visual>
       <collision>
@@ -206,11 +315,12 @@
       <origin xyz="0 ${y_offset} 0.1" rpy="0 -1.5708 0"/>
     </joint>
 
-    <xacro:thumb  prefix="${side}_thumb"  parent_link="${side}_hand_base" x_pos="0.00"  y_pos="${mirror * -0.030}" z_pos="0.0" rotation="${mirror * -0.7}" axis_z="${mirror}"/>
-    <xacro:finger prefix="${side}_index"  parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror * -0.030}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
-    <xacro:finger prefix="${side}_middle" parent_link="${side}_hand_base" x_pos="0.058" y_pos="${mirror * -0.010}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
-    <xacro:finger prefix="${side}_ring"   parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror * 0.010}"  z_pos="0.0" rotation="0" axis_z="${mirror}"/>
-    <xacro:finger prefix="${side}_pinky"  parent_link="${side}_hand_base" x_pos="0.050" y_pos="${mirror * 0.030}"  z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <!-- Fingers: x_pos places them at the front edge of the palm -->
+    <xacro:thumb  prefix="${side}_thumb"  parent_link="${side}_hand_base" x_pos="0.00"  y_pos="${mirror * -0.032}" z_pos="0.0" rotation="${mirror * -0.7}" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_index"  parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror * -0.028}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_middle" parent_link="${side}_hand_base" x_pos="0.058" y_pos="${mirror * -0.009}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_ring"   parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror *  0.010}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_pinky"  parent_link="${side}_hand_base" x_pos="0.048" y_pos="${mirror *  0.028}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
 
   </xacro:macro>
 

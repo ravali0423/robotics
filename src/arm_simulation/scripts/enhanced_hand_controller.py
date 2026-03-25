@@ -60,7 +60,7 @@ class EnhancedHandController(Node):
         self.target_positions = self.joint_positions.copy()
         
         # Transition parameters
-        self.transition_speed = 0.05  # How fast to move between positions
+        self.transition_speed = 0.4  # How fast to move between positions
         self.is_transitioning = False
         
         # Current gesture info

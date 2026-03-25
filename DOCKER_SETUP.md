@@ -3,6 +3,7 @@
 ROS 2 Jazzy robotic arm simulation running in Docker, visualized via VNC on Mac.
 
 Two simulations included:
+
 - **UR5 Industrial Arm** — 6-DOF arm with interactive joint sliders
 - **Robotic Hand** — 5-finger hand with ASL gesture and finger count control
 
@@ -11,9 +12,11 @@ Two simulations included:
 ## Prerequisites
 
 ### 1. Install Docker Desktop
+
 Download and install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/). Make sure it is running before proceeding.
 
 ### 2. Install VNC Viewer
+
 ```bash
 sudo chown -R $(whoami) /opt/homebrew
 brew install --cask vnc-viewer
@@ -44,6 +47,7 @@ docker run -it \
 ```
 
 You will see output like:
+
 ```
 The VNC desktop is: 0.0.0.0:0
 PORT=5900
@@ -57,11 +61,13 @@ You are now **inside the container**.
 ## Step 3 — Connect via VNC
 
 Open a **new Mac terminal tab** and run:
+
 ```bash
 open -a "VNC Viewer"
 ```
 
 In VNC Viewer, connect to:
+
 ```
 localhost:5900
 ```
@@ -77,11 +83,13 @@ Leave the password blank if prompted and click **Continue**. A desktop will appe
 Go back to the **container terminal** and run one of the following:
 
 ### Robotic Hand
+
 ```bash
 ros2 launch arm_simulation robotic_hand.launch.py
 ```
 
 ### UR5 Arm
+
 ```bash
 ros2 launch arm_simulation view_arm.launch.py
 ```
@@ -93,11 +101,13 @@ The RViz2 window will appear inside the VNC Viewer. You can drag and resize it u
 ## Step 5 — Control the Hand
 
 Open a **second terminal into the running container**:
+
 ```bash
 docker exec -it arm-sim bash
 ```
 
 ### Finger counting (0–5)
+
 ```bash
 # Fist
 ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 0}" --once
@@ -113,6 +123,7 @@ ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 5}" --once
 ```
 
 ### ASL gestures (single letter)
+
 ```bash
 # Fist (letter A)
 ros2 topic pub /gesture_command std_msgs/msg/String "{data: a}" --once
@@ -133,6 +144,7 @@ ros2 topic pub /gesture_command std_msgs/msg/String "{data: neutral}" --once
 All supported gestures: `a` through `z`, `hello`, `neutral`
 
 ### ASL letter spelling (via /letter_command)
+
 ```bash
 ros2 topic pub /letter_command std_msgs/msg/String "{data: r}" --once
 ```
@@ -141,22 +153,23 @@ ros2 topic pub /letter_command std_msgs/msg/String "{data: r}" --once
 
 ## Dual Hands Simulation
 
-Shows two hands side by side. Send a single number (0–10) and it automatically splits across both hands:
+Shows two hands side by side with multiple control modes:
 
-```
-data: 8  → left=5, right=3
-data: 3  → left=3, right=0
-data: 10 → left=5, right=5
-```
+- **Finger counting (0–10)**: Automatically splits across both hands
+- **Two-character words**: Right hand shows first character, left hand shows second character
+- **Single letters**: Both hands display the same letter
+- **Independent control**: Each hand can be controlled separately
 
 ### Launch
 
 Rebuild the image first if you haven't since this feature was added:
+
 ```bash
 docker rm -f arm-sim && docker build -t arm-sim . && docker run -it --name arm-sim -p 5900:5900 arm-sim
 ```
 
 Inside the container:
+
 ```bash
 ros2 launch arm_simulation dual_hands.launch.py
 ```
@@ -166,11 +179,13 @@ Connect via VNC Viewer to `localhost:5900` — both hands appear side by side in
 ### Combined finger count (0–10)
 
 Open a second terminal into the container:
+
 ```bash
 docker exec -it arm-sim bash
 ```
 
 Then send commands:
+
 ```bash
 # 8 total → left=5, right=3
 ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 8}" --once
@@ -180,6 +195,31 @@ ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 3}" --once
 
 # 10 total → left=5, right=5
 ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 10}" --once
+```
+
+### Two-character words (Dual Hand Spelling)
+
+Right hand displays the first character, left hand displays the second character:
+
+```bash
+# Word "ab" → right hand: "a", left hand: "b"
+ros2 topic pub /letter_command std_msgs/msg/String "{data: ab}" --once
+
+# Word "go" → right hand: "g", left hand: "o"
+ros2 topic pub /letter_command std_msgs/msg/String "{data: go}" --once
+
+# Word "it" → right hand: "i", left hand: "t"
+ros2 topic pub /letter_command std_msgs/msg/String "{data: it}" --once
+```
+
+### Single letters (Both hands display same)
+
+```bash
+# Both hands show "a"
+ros2 topic pub /letter_command std_msgs/msg/String "{data: a}" --once
+
+# Both hands show "z"
+ros2 topic pub /letter_command std_msgs/msg/String "{data: z}" --once
 ```
 
 ### Independent hand control
@@ -202,39 +242,39 @@ ros2 topic pub /right/finger_count std_msgs/msg/Int32 "{data: 5}" --once
 
 ### Dual hands topic reference
 
-| Topic | Type | Description |
-|-------|------|-------------|
-| `/finger_count` | `std_msgs/Int32` | Combined count 0–10, splits automatically |
-| `/left/finger_count` | `std_msgs/Int32` | Left hand only (0–5) |
-| `/right/finger_count` | `std_msgs/Int32` | Right hand only (0–5) |
-| `/left/gesture_command` | `std_msgs/String` | Gesture on left hand (a–z, hello, neutral) |
-| `/right/gesture_command` | `std_msgs/String` | Gesture on right hand |
-| `/left/letter_command` | `std_msgs/String` | ASL letter on left hand |
-| `/right/letter_command` | `std_msgs/String` | ASL letter on right hand |
+| Topic                    | Type              | Description                                |
+| ------------------------ | ----------------- | ------------------------------------------ |
+| `/finger_count`          | `std_msgs/Int32`  | Combined count 0–10, splits automatically  |
+| `/left/finger_count`     | `std_msgs/Int32`  | Left hand only (0–5)                       |
+| `/right/finger_count`    | `std_msgs/Int32`  | Right hand only (0–5)                      |
+| `/left/gesture_command`  | `std_msgs/String` | Gesture on left hand (a–z, hello, neutral) |
+| `/right/gesture_command` | `std_msgs/String` | Gesture on right hand                      |
+| `/left/letter_command`   | `std_msgs/String` | ASL letter on left hand                    |
+| `/right/letter_command`  | `std_msgs/String` | ASL letter on right hand                   |
 
 ---
 
 ## Container Management
 
-| Task | Command |
-|------|---------|
-| Stop the container | `docker stop arm-sim` |
-| Restart and re-attach | `docker start -ai arm-sim` |
-| Open a second terminal in the container | `docker exec -it arm-sim bash` |
-| Remove the container (keeps image) | `docker rm arm-sim` |
-| Rebuild after code changes | `docker rm -f arm-sim && docker build -t arm-sim . && docker run -it --name arm-sim -p 5900:5900 arm-sim` |
+| Task                                    | Command                                                                                                   |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Stop the container                      | `docker stop arm-sim`                                                                                     |
+| Restart and re-attach                   | `docker start -ai arm-sim`                                                                                |
+| Open a second terminal in the container | `docker exec -it arm-sim bash`                                                                            |
+| Remove the container (keeps image)      | `docker rm arm-sim`                                                                                       |
+| Rebuild after code changes              | `docker rm -f arm-sim && docker build -t arm-sim . && docker run -it --name arm-sim -p 5900:5900 arm-sim` |
 
 ---
 
 ## ROS Topics Reference
 
-| Topic | Type | Description |
-|-------|------|-------------|
-| `/finger_count` | `std_msgs/Int32` | Set finger count 0–5 |
-| `/gesture_command` | `std_msgs/String` | Named gesture (a–z, hello, neutral) |
-| `/letter_command` | `std_msgs/String` | Single ASL letter (a–z) |
-| `/joint_states` | `sensor_msgs/JointState` | Current joint positions (output) |
-| `/current_gesture` | `std_msgs/String` | Active gesture name (output) |
+| Topic              | Type                     | Description                         |
+| ------------------ | ------------------------ | ----------------------------------- |
+| `/finger_count`    | `std_msgs/Int32`         | Set finger count 0–5                |
+| `/gesture_command` | `std_msgs/String`        | Named gesture (a–z, hello, neutral) |
+| `/letter_command`  | `std_msgs/String`        | Single ASL letter (a–z)             |
+| `/joint_states`    | `sensor_msgs/JointState` | Current joint positions (output)    |
+| `/current_gesture` | `std_msgs/String`        | Active gesture name (output)        |
 
 ```bash
 # Useful diagnostics (run inside container)
@@ -248,16 +288,21 @@ ros2 topic echo /current_gesture   # watch active gesture
 ## Troubleshooting
 
 **VNC Viewer stuck on connecting**
+
 - Mac's built-in Screen Sharing does not work — use VNC Viewer only
 
 **Blank screen in VNC**
+
 - Nothing has been launched yet — run the launch command in the container terminal
 
 **Can't move RViz window**
+
 - Openbox window manager is included — windows have title bars and can be dragged
 
 **Build fails with `python3-pyaudio` error**
+
 - Already handled — the Dockerfile skips it with `--skip-keys`
 
 **Platform warning during build or run**
+
 - Harmless — the amd64 image runs via Rosetta 2 on Apple Silicon

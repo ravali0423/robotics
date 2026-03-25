@@ -223,6 +223,18 @@ class SpeechToGestureCoordinator(Node):
             # Use threading timer for delayed restart
             import threading
             threading.Timer(3.0, self.restart_listening_after_letter).start()
+        
+        # Check if it's a two-character alphabetic word (dual hand support)
+        elif len(cleaned_text) == 2 and cleaned_text.isalpha():
+            self.get_logger().info(f'Sending two-character word to dual hands: "{cleaned_text}"')
+            self.get_logger().info(f'Right hand will show: "{cleaned_text[0]}", Left hand will show: "{cleaned_text[1]}"')
+            msg = String()
+            msg.data = cleaned_text
+            self.letter_command_pub.publish(msg)
+            
+            # Use threading timer for delayed restart
+            import threading
+            threading.Timer(3.0, self.restart_listening_after_letter).start()
             
         # Check for common gesture words
         elif cleaned_text in ['hello', 'hi', 'goodbye', 'bye', 'thank you', 'thanks', 'please']:

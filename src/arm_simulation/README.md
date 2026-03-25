@@ -7,6 +7,7 @@ This ROS2 package implements a comprehensive speech-to-gesture system designed t
 ## Features
 
 ### Core Functionality
+
 - **Real-time speech recognition** - Converts spoken words to text
 - **ASL gesture mapping** - Comprehensive library of ASL alphabet, numbers, and common words
 - **Gesture sequencing** - Smooth transitions between multiple gestures for spelling and phrases
@@ -14,6 +15,7 @@ This ROS2 package implements a comprehensive speech-to-gesture system designed t
 - **Interactive control** - Multiple input methods for testing and demonstration
 
 ### Assistive Technology Benefits
+
 - **Communication bridge** - Helps hearing people communicate with deaf individuals
 - **Educational tool** - Demonstrates ASL alphabet and common signs
 - **Emergency assistance** - Can convey important phrases and emergency words
@@ -56,17 +58,20 @@ The system consists of several interconnected ROS2 nodes:
 ## Installation and Setup
 
 ### Prerequisites
+
 - ROS2 (Jazzy or later)
 - Python 3.8+
 - Audio input device (microphone)
 - Optional: Audio output for feedback
 
 ### Required Python packages
+
 ```bash
 pip install SpeechRecognition pyaudio
 ```
 
 ### Build the package
+
 ```bash
 cd ~/ros2_ws
 colcon build --packages-select arm_simulation
@@ -76,26 +81,100 @@ source install/setup.bash
 ## Usage
 
 ### Quick Start - Complete System
+
 Launch the full speech-to-gesture system:
+
 ```bash
 ros2 launch arm_simulation speech_to_gesture.launch.py
 ```
 
 This starts all components and enables voice control. The system will:
+
 1. Start listening for speech automatically
 2. Convert speech to ASL gestures
 3. Display gestures on the robotic hand in RViz
 4. Provide audio/visual feedback
 
 ### Testing Mode - Visual Only
+
 For testing without audio components:
+
 ```bash
 ros2 launch arm_simulation test_gestures.launch.py
+```
+
+### Dual Hand Simulation
+
+Launch the dual-hand system with two robotic hands side by side:
+
+```bash
+ros2 launch arm_simulation dual_hands.launch.py
+```
+
+#### Dual Hand Control Commands:
+
+##### Two-Character Words (Dual Hand Spelling)
+
+Right hand displays the first character, left hand displays the second character:
+
+```bash
+# Word "ab" → right hand: "a", left hand: "b"
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "ab"}'
+
+# Word "go" → right hand: "g", left hand: "o"
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "go"}'
+
+# Word "it" → right hand: "i", left hand: "t"
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "it"}'
+```
+
+##### Single Letters (Both hands display same)
+
+```bash
+# Both hands show "a"
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "a"}'
+
+# Both hands show "z"
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "z"}'
+```
+
+##### Combined Finger Count (0–10)
+
+```bash
+# 8 total → left=5, right=3
+ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 8}'
+
+# 3 total → left=3, right=0
+ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 3}'
+
+# 10 total → left=5, right=5
+ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 10}'
+```
+
+##### Independent Hand Control
+
+```bash
+# Left hand gestures
+ros2 topic pub /left/gesture_command std_msgs/msg/String '{data: "v"}'
+
+# Right hand gestures
+ros2 topic pub /right/gesture_command std_msgs/msg/String '{data: "a"}'
+
+# Left hand letters
+ros2 topic pub /left/letter_command std_msgs/msg/String '{data: "l"}'
+
+# Right hand letters
+ros2 topic pub /right/letter_command std_msgs/msg/String '{data: "r"}'
+
+# Finger count per hand
+ros2 topic pub /left/finger_count std_msgs/msg/Int32 '{data: 3}'
+ros2 topic pub /right/finger_count std_msgs/msg/Int32 '{data: 5}'
 ```
 
 ### Manual Control Commands
 
 #### Basic gesture commands:
+
 ```bash
 # Finger counting (0-5)
 ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 3}'
@@ -111,6 +190,7 @@ ros2 topic pub /text_to_sequence std_msgs/msg/String '{data: "cat"}'
 ```
 
 #### System control:
+
 ```bash
 # Start/stop listening
 ros2 topic pub /user_command std_msgs/msg/String '{data: "start listening"}'
@@ -129,11 +209,13 @@ ros2 topic pub /user_command std_msgs/msg/String '{data: "reset"}'
 ### Running Demonstrations
 
 #### Comprehensive demonstration:
+
 ```bash
 ros2 run arm_simulation speech_to_gesture_demo.py full
 ```
 
 #### Specific demonstrations:
+
 ```bash
 # ASL alphabet
 ros2 run arm_simulation speech_to_gesture_demo.py alphabet
@@ -151,16 +233,19 @@ ros2 run arm_simulation speech_to_gesture_demo.py interactive
 ### System Testing
 
 #### Quick functionality test:
+
 ```bash
 ros2 run arm_simulation system_tester.py quick
 ```
 
 #### Comprehensive component testing:
+
 ```bash
 ros2 run arm_simulation system_tester.py full
 ```
 
 #### Specific component tests:
+
 ```bash
 ros2 run arm_simulation system_tester.py fingers
 ros2 run arm_simulation system_tester.py letters
@@ -173,18 +258,22 @@ ros2 run arm_simulation system_tester.py sequences
 ### Supported Gestures
 
 #### Alphabet (A-Z)
+
 Complete ASL alphabet with proper finger positioning for each letter.
 
 #### Numbers (0-9)
+
 Standard ASL number representations.
 
 #### Common Words
+
 - hello, goodbye
 - please, thank you
 - yes, no
 - And more...
 
 #### Emergency Phrases
+
 - help, emergency
 - call 911, doctor, hospital
 
@@ -200,7 +289,9 @@ asl_mapper.save_custom_gesture('new_word', joint_configuration, 'words')
 ## Technical Details
 
 ### Joint Configuration
+
 The robotic hand has 14 controllable joints:
+
 - Thumb: 2 joints (base, proximal)
 - Index finger: 3 joints (base, proximal, middle)
 - Middle finger: 3 joints (base, proximal, middle)
@@ -208,6 +299,7 @@ The robotic hand has 14 controllable joints:
 - Pinky finger: 3 joints (base, proximal, middle)
 
 ### Coordinate System
+
 - Joint positions range from 0.0 (extended) to 1.4+ (fully bent)
 - Base joints control finger spread/positioning
 - Proximal/middle joints control finger bending
@@ -215,6 +307,7 @@ The robotic hand has 14 controllable joints:
 ### Communication Topics
 
 #### Published Topics:
+
 - `/joint_states` - Hand joint positions
 - `/current_gesture` - Current gesture being displayed
 - `/sequence_status` - Status of gesture sequences
@@ -222,6 +315,7 @@ The robotic hand has 14 controllable joints:
 - `/system_status_markers` - Visual indicators for RViz
 
 #### Subscribed Topics:
+
 - `/recognized_speech` - Text from speech recognition
 - `/finger_count` - Simple finger counting commands
 - `/gesture_command` - Word/phrase gesture commands
@@ -232,16 +326,19 @@ The robotic hand has 14 controllable joints:
 ## Accessibility Features
 
 ### For Hearing Users
+
 - Audio feedback when system is listening
 - Voice confirmation of recognized speech
 - Status announcements via text-to-speech
 
 ### For Deaf Users
+
 - Visual status indicators in RViz
 - Clear gesture representations
 - Text display of recognized speech
 
 ### Universal Design
+
 - Multiple input methods (voice, manual commands)
 - Configurable timing and sensitivity
 - Error recovery and system reset capabilities
@@ -251,21 +348,25 @@ The robotic hand has 14 controllable joints:
 ### Common Issues
 
 #### No audio input detected:
+
 - Check microphone permissions
 - Verify audio device is working
 - Install/configure PulseAudio if needed
 
 #### Speech recognition not working:
+
 - Check internet connection (for Google Speech API)
 - Install offline recognition: `pip install pocketsphinx`
 - Adjust microphone sensitivity in parameters
 
 #### Gestures not displaying:
+
 - Ensure RViz is running and configured
 - Check that all nodes are publishing
 - Verify joint state publisher is active
 
 #### System not responding:
+
 - Use reset command: `/user_command "reset"`
 - Restart nodes if necessary
 - Check ROS2 topic connectivity
@@ -289,6 +390,7 @@ ros2 topic echo /system_status
 ## Future Enhancements
 
 ### Planned Features
+
 - Support for more sign languages (BSL, FSL, etc.)
 - Machine learning for gesture recognition
 - Mobile app interface
@@ -296,6 +398,7 @@ ros2 topic echo /system_status
 - Real-time conversation mode
 
 ### Hardware Extensions
+
 - Integration with physical robotic hands
 - Haptic feedback systems
 - Eye tracking for gaze-based control
@@ -304,6 +407,7 @@ ros2 topic echo /system_status
 ## Contributing
 
 This project welcomes contributions to improve accessibility and expand ASL support. Areas for contribution:
+
 - Additional ASL gestures and phrases
 - Support for other sign languages
 - Improved speech recognition accuracy

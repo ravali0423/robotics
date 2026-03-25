@@ -49,6 +49,7 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/hand_controller.py
   scripts/enhanced_hand_controller.py
+  scripts/dual_hand_coordinator.py
   scripts/speech_recognition_node.py
   scripts/gesture_sequencer.py
   scripts/speech_to_gesture_coordinator.py

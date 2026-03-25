@@ -16,34 +16,40 @@ class EnhancedHandController(Node):
     
     def __init__(self):
         super().__init__('enhanced_hand_controller')
-        
+
+        # hand_side parameter: 'left' or 'right' for dual-hand mode, '' for single-hand mode
+        self.declare_parameter('hand_side', '')
+        self.hand_side = self.get_parameter('hand_side').get_parameter_value().string_value
+        self.prefix = f'{self.hand_side}_' if self.hand_side else ''
+        ns = f'/{self.hand_side}' if self.hand_side else ''
+
         # Initialize complete ASL alphabet configurations
         self.asl_alphabet = self._init_complete_asl_alphabet()
-        
+
         # Publishers
         self.joint_pub = self.create_publisher(JointState, '/joint_states', 10)
-        self.gesture_status_pub = self.create_publisher(String, '/current_gesture', 10)
-        
+        self.gesture_status_pub = self.create_publisher(String, f'{ns}/current_gesture', 10)
+
         # Subscribers
         self.finger_count_sub = self.create_subscription(
-            Int32, '/finger_count', self.finger_count_callback, 10)
-        
+            Int32, f'{ns}/finger_count', self.finger_count_callback, 10)
+
         self.gesture_command_sub = self.create_subscription(
-            String, '/gesture_command', self.gesture_command_callback, 10)
-        
+            String, f'{ns}/gesture_command', self.gesture_command_callback, 10)
+
         self.letter_command_sub = self.create_subscription(
-            String, '/letter_command', self.letter_command_callback, 10)
-        
+            String, f'{ns}/letter_command', self.letter_command_callback, 10)
+
         # Timer for continuous joint state publishing
         self.timer = self.create_timer(0.1, self.publish_joint_states)
-        
-        # Joint configuration
+
+        # Joint configuration — prefixed for dual-hand mode
         self.joint_names = [
-            'thumb_base_joint', 'thumb_proximal_joint',
-            'index_base_joint', 'index_proximal_joint', 'index_middle_joint',
-            'middle_base_joint', 'middle_proximal_joint', 'middle_middle_joint',
-            'ring_base_joint', 'ring_proximal_joint', 'ring_middle_joint',
-            'pinky_base_joint', 'pinky_proximal_joint', 'pinky_middle_joint'
+            f'{self.prefix}thumb_base_joint', f'{self.prefix}thumb_proximal_joint',
+            f'{self.prefix}index_base_joint', f'{self.prefix}index_proximal_joint', f'{self.prefix}index_middle_joint',
+            f'{self.prefix}middle_base_joint', f'{self.prefix}middle_proximal_joint', f'{self.prefix}middle_middle_joint',
+            f'{self.prefix}ring_base_joint', f'{self.prefix}ring_proximal_joint', f'{self.prefix}ring_middle_joint',
+            f'{self.prefix}pinky_base_joint', f'{self.prefix}pinky_proximal_joint', f'{self.prefix}pinky_middle_joint'
         ]
         
         # Current joint positions (start in neutral position)
@@ -409,7 +415,9 @@ class EnhancedHandController(Node):
         """Convert configuration dictionary to position list matching joint_names order"""
         positions = []
         for joint_name in self.joint_names:
-            positions.append(config.get(joint_name, 0.0))
+            # Config dicts use bare names (no hand_side prefix), strip prefix for lookup
+            bare_name = joint_name[len(self.prefix):]
+            positions.append(config.get(bare_name, 0.0))
         return positions
     
     def _smooth_transition(self):

@@ -16,6 +16,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /ros2_ws
 COPY src/arm_simulation src/arm_simulation/
 
+RUN chmod +x src/arm_simulation/scripts/*.py
+
 RUN bash -c "source /opt/ros/jazzy/setup.bash && \
     rosdep install --from-paths src --ignore-src -r -y --skip-keys 'python3-pyaudio python3-speechrecognition' && \
     colcon build --symlink-install"

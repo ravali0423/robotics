@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<robot name="dual_robotic_hands" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Dimensions -->
+  <xacro:property name="hand_width" value="0.08" />
+  <xacro:property name="hand_length" value="0.12" />
+  <xacro:property name="hand_height" value="0.01" />
+  <xacro:property name="finger_width" value="0.015" />
+  <xacro:property name="finger_length" value="0.03" />
+  <xacro:property name="finger_height" value="0.01" />
+  <xacro:property name="thumb_width" value="0.018" />
+  <xacro:property name="thumb_length" value="0.025" />
+
+  <!-- Materials -->
+  <material name="palm_material">
+    <color rgba="0.98 0.90 0.76 1.0"/>
+  </material>
+  <material name="finger_material">
+    <color rgba="0.92 0.83 0.68 1.0"/>
+  </material>
+  <material name="nail_material">
+    <color rgba="0.95 0.92 0.88 1.0"/>
+  </material>
+
+  <!-- World link -->
+  <link name="world">
+    <visual>
+      <geometry><box size="0.001 0.001 0.001"/></geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </inertial>
+  </link>
+
+  <!-- Finger macro
+       axis_z: 1 for left hand, -1 for right hand.
+       Negating the base joint axis mirrors abduction/adduction so the same
+       controller angle produces the anatomically correct movement on both hands. -->
+  <xacro:macro name="finger" params="prefix parent_link x_pos y_pos z_pos rotation axis_z">
+
+    <link name="${prefix}_proximal">
+      <visual>
+        <geometry><box size="${finger_length} ${finger_width} ${finger_height}"/></geometry>
+        <material name="finger_material"/>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${finger_length} ${finger_width} ${finger_height}"/></geometry>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.05"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length/2} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <link name="${prefix}_middle">
+      <visual>
+        <geometry><box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/></geometry>
+        <material name="finger_material"/>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${finger_length*0.8} ${finger_width*0.9} ${finger_height*0.9}"/></geometry>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.03"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length*0.4} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <link name="${prefix}_distal">
+      <visual>
+        <geometry><box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/></geometry>
+        <material name="nail_material"/>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${finger_length*0.6} ${finger_width*0.8} ${finger_height*0.8}"/></geometry>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.02"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${finger_length*0.3} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <!-- Base joint: axis_z flipped for right hand so abduction mirrors correctly -->
+    <joint name="${prefix}_base_joint" type="revolute">
+      <parent link="${parent_link}"/>
+      <child link="${prefix}_proximal"/>
+      <origin xyz="${x_pos} ${y_pos} ${z_pos}" rpy="0 0 ${rotation}"/>
+      <axis xyz="0 0 ${axis_z}"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <!-- Flexion joints: axis unchanged, bending direction is the same for both hands -->
+    <joint name="${prefix}_proximal_joint" type="revolute">
+      <parent link="${prefix}_proximal"/>
+      <child link="${prefix}_middle"/>
+      <origin xyz="${finger_length} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <joint name="${prefix}_middle_joint" type="revolute">
+      <parent link="${prefix}_middle"/>
+      <child link="${prefix}_distal"/>
+      <origin xyz="${finger_length*0.8} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+  </xacro:macro>
+
+  <!-- Thumb macro — same axis_z mirroring logic as finger -->
+  <xacro:macro name="thumb" params="prefix parent_link x_pos y_pos z_pos rotation axis_z">
+
+    <link name="${prefix}_proximal">
+      <visual>
+        <geometry><box size="${thumb_length} ${thumb_width} ${finger_height}"/></geometry>
+        <material name="finger_material"/>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${thumb_length} ${thumb_width} ${finger_height}"/></geometry>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.04"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${thumb_length/2} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <link name="${prefix}_distal">
+      <visual>
+        <geometry><box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/></geometry>
+        <material name="nail_material"/>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${thumb_length*0.7} ${thumb_width*0.9} ${finger_height*0.9}"/></geometry>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.025"/>
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        <origin xyz="${thumb_length*0.35} 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}_base_joint" type="revolute">
+      <parent link="${parent_link}"/>
+      <child link="${prefix}_proximal"/>
+      <origin xyz="${x_pos} ${y_pos} ${z_pos}" rpy="0 0 ${rotation}"/>
+      <axis xyz="0 0 ${axis_z}"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+    <joint name="${prefix}_proximal_joint" type="revolute">
+      <parent link="${prefix}_proximal"/>
+      <child link="${prefix}_distal"/>
+      <origin xyz="${thumb_length} 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="10" velocity="1.0"/>
+    </joint>
+
+  </xacro:macro>
+
+  <!-- Hand assembly macro
+       mirror= 1 → left  hand: thumb at y=-0.030, base joints rotate around +Z
+       mirror=-1 → right hand: thumb at y=+0.030, base joints rotate around -Z
+       The negated axis_z makes the right hand respond to the same controller
+       angles with anatomically mirrored movement. Flexion (bending) joints
+       keep axis xyz="0 1 0" unchanged so fingers still curl toward the screen. -->
+  <xacro:macro name="hand_assembly" params="side y_offset mirror">
+
+    <link name="${side}_hand_base">
+      <visual>
+        <geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
+        <material name="palm_material"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.5"/>
+        <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </inertial>
+    </link>
+
+    <joint name="${side}_orientation_joint" type="fixed">
+      <parent link="world"/>
+      <child link="${side}_hand_base"/>
+      <origin xyz="0 ${y_offset} 0.1" rpy="0 -1.5708 0"/>
+    </joint>
+
+    <xacro:thumb  prefix="${side}_thumb"  parent_link="${side}_hand_base" x_pos="0.00"  y_pos="${mirror * -0.030}" z_pos="0.0" rotation="${mirror * -0.7}" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_index"  parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror * -0.030}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_middle" parent_link="${side}_hand_base" x_pos="0.058" y_pos="${mirror * -0.010}" z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_ring"   parent_link="${side}_hand_base" x_pos="0.055" y_pos="${mirror * 0.010}"  z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+    <xacro:finger prefix="${side}_pinky"  parent_link="${side}_hand_base" x_pos="0.050" y_pos="${mirror * 0.030}"  z_pos="0.0" rotation="0" axis_z="${mirror}"/>
+
+  </xacro:macro>
+
+  <xacro:hand_assembly side="left"  y_offset=" 0.15" mirror="1"/>
+  <xacro:hand_assembly side="right" y_offset="-0.15" mirror="-1"/>
+
+</robot>

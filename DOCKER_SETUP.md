@@ -139,6 +139,81 @@ ros2 topic pub /letter_command std_msgs/msg/String "{data: r}" --once
 
 ---
 
+## Dual Hands Simulation
+
+Shows two hands side by side. Send a single number (0–10) and it automatically splits across both hands:
+
+```
+data: 8  → left=5, right=3
+data: 3  → left=3, right=0
+data: 10 → left=5, right=5
+```
+
+### Launch
+
+Rebuild the image first if you haven't since this feature was added:
+```bash
+docker rm -f arm-sim && docker build -t arm-sim . && docker run -it --name arm-sim -p 5900:5900 arm-sim
+```
+
+Inside the container:
+```bash
+ros2 launch arm_simulation dual_hands.launch.py
+```
+
+Connect via VNC Viewer to `localhost:5900` — both hands appear side by side in RViz2.
+
+### Combined finger count (0–10)
+
+Open a second terminal into the container:
+```bash
+docker exec -it arm-sim bash
+```
+
+Then send commands:
+```bash
+# 8 total → left=5, right=3
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 8}" --once
+
+# 3 total → left=3, right=0
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 3}" --once
+
+# 10 total → left=5, right=5
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 10}" --once
+```
+
+### Independent hand control
+
+Each hand can also be controlled separately:
+
+```bash
+# Gestures
+ros2 topic pub /left/gesture_command std_msgs/msg/String "{data: v}" --once
+ros2 topic pub /right/gesture_command std_msgs/msg/String "{data: a}" --once
+
+# ASL letters
+ros2 topic pub /left/letter_command std_msgs/msg/String "{data: l}" --once
+ros2 topic pub /right/letter_command std_msgs/msg/String "{data: r}" --once
+
+# Finger count per hand
+ros2 topic pub /left/finger_count std_msgs/msg/Int32 "{data: 3}" --once
+ros2 topic pub /right/finger_count std_msgs/msg/Int32 "{data: 5}" --once
+```
+
+### Dual hands topic reference
+
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/finger_count` | `std_msgs/Int32` | Combined count 0–10, splits automatically |
+| `/left/finger_count` | `std_msgs/Int32` | Left hand only (0–5) |
+| `/right/finger_count` | `std_msgs/Int32` | Right hand only (0–5) |
+| `/left/gesture_command` | `std_msgs/String` | Gesture on left hand (a–z, hello, neutral) |
+| `/right/gesture_command` | `std_msgs/String` | Gesture on right hand |
+| `/left/letter_command` | `std_msgs/String` | ASL letter on left hand |
+| `/right/letter_command` | `std_msgs/String` | ASL letter on right hand |
+
+---
+
 ## Container Management
 
 | Task | Command |

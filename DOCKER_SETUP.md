@@ -13,15 +13,18 @@ Two simulations included:
 
 ### 1. Install Docker Desktop
 
-Download and install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/). Make sure it is running before proceeding.
+Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/). Make sure it is running before proceeding.
 
 ### 2. Install VNC Viewer
-
+Mac:
 ```bash
 sudo chown -R $(whoami) /opt/homebrew
 brew install --cask vnc-viewer
 ```
-
+Windows:
+```wingets
+winget install --id RealVNC.VNCViewer -e
+```
 ---
 
 ## Step 1 — Build the Docker Image
@@ -38,12 +41,16 @@ The first build takes several minutes. Subsequent builds use cache.
 ---
 
 ## Step 2 — Run the Container
-
+Mac:
 ```bash
 docker run -it \
   --name arm-sim \
   -p 5900:5900 \
   arm-sim
+```
+Windows:
+```
+docker run -it --name arm-sim -p 5900:5900 --security-opt seccomp=unconfined arm-sim
 ```
 
 You will see output like:
@@ -61,7 +68,7 @@ You are now **inside the container**.
 ## Step 3 — Connect via VNC
 
 Open a **new Mac terminal tab** and run:
-
+Mac:
 ```bash
 open -a "VNC Viewer"
 ```
@@ -73,6 +80,12 @@ localhost:5900
 ```
 
 Leave the password blank if prompted and click **Continue**. A desktop will appear.
+
+Windows:
+```
+& "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" localhost:5900
+```
+```
 
 > To fit the screen, use the **Scale to fit** button in the VNC Viewer toolbar.
 

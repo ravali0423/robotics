@@ -67,8 +67,10 @@ You are now **inside the container**.
 
 ## Step 3 — Connect via VNC
 
-Open a **new Mac terminal tab** and run:
 Mac:
+
+Open a **new Mac terminal tab** and run:
+
 ```bash
 open -a "VNC Viewer"
 ```
@@ -82,13 +84,16 @@ localhost:5900
 Leave the password blank if prompted and click **Continue**. A desktop will appear.
 
 Windows:
+
+Open a **new powershell or command prompt** and run:
+
 ```
 & "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" localhost:5900
 ```
+
 ```
-
 > To fit the screen, use the **Scale to fit** button in the VNC Viewer toolbar.
-
+```
 ---
 
 ## Step 4 — Launch a Simulation

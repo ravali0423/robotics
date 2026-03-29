@@ -399,6 +399,15 @@ ros2 topic echo /current_gesture   # watch active gesture
 
 - Mac's built-in Screen Sharing does not work — use VNC Viewer only
 
+**VNC failed to connect or can notconnect to display**
+- In the container terminal: exit out and do:
+  ```
+  docker rm -f arm-sim
+  docker run -it --name arm-sim -p 5900:5900 arm-sim
+  ```
+- Then immediately connect with VNC Viewer to localhost:5900 and only after that start ros2 launch ... commands
+  - Follow instructions in Step3
+  
 **Blank screen in VNC**
 
 - Nothing has been launched yet — run the launch command in the container terminal

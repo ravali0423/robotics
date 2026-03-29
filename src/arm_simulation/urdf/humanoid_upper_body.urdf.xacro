@@ -57,7 +57,7 @@
   </material>
   
   <material name="mouth">
-    <color rgba="0.8 0.3 0.3 1.0"/>  <!-- Red mouth -->
+    <color rgba="0.8 0.1 0.1 1.0"/>  <!-- Red mouth -->
   </material>
 
   <!-- ==================== WORLD LINK ==================== -->
@@ -153,13 +153,13 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </visual>
     
-    <!-- Face plate (slightly forward) -->
+    <!-- Face plate (forward in +X) -->
     <visual>
       <geometry>
         <box size="${face_width} ${face_height} ${face_depth}"/>
       </geometry>
       <material name="skin_face"/>
-      <origin xyz="0 0 ${head_radius - face_depth/2}" rpy="0 0 0"/>
+      <origin xyz="0 0.150 ${head_radius - face_depth/2 - 0.090}" rpy="1.5708 0 0"/>
     </visual>
     
     <!-- Left eye -->
@@ -168,25 +168,25 @@
         <sphere radius="0.018"/>
       </geometry>
       <material name="eyes"/>
-      <origin xyz="${face_width/4} ${face_height/4} ${head_radius + 0.005}" rpy="0 0 0"/>
+      <origin xyz="${face_width/4} 0.19 ${head_radius + -0.050}" rpy="0 0 0"/>
     </visual>
-    
+
     <!-- Right eye -->
     <visual>
       <geometry>
         <sphere radius="0.018"/>
       </geometry>
       <material name="eyes"/>
-      <origin xyz="${-face_width/4} ${face_height/4} ${head_radius + 0.005}" rpy="0 0 0"/>
+      <origin xyz="${-face_width/4} 0.19 ${head_radius + -0.050}" rpy="0 0 0"/>
     </visual>
-    
+
     <!-- Mouth -->
     <visual>
       <geometry>
-        <box size="${face_width/3} 0.015 0.01"/>
+        <box size="${face_width/3} 0.01 0.015"/>
       </geometry>
       <material name="mouth"/>
-      <origin xyz="0 ${-face_height/6} ${head_radius + 0.005}" rpy="0 0 0"/>
+      <origin xyz="0 0.19 ${head_radius - 0.15}" rpy="0 0 0"/>
     </visual>
     
     <collision>

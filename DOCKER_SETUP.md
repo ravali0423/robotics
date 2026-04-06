@@ -1,6 +1,6 @@
-# Arm Simulation — Docker Setup on Mac (Apple Silicon)
+# Arm Simulation — Docker Setup for Mac & Windows
 
-ROS 2 Jazzy robotic arm simulation running in Docker, visualized via VNC on Mac.
+ROS 2 Jazzy robotic arm simulation running in Docker, visualized via VNC on Mac or Windows.
 
 Two simulations included:
 

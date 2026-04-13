@@ -1,411 +1,678 @@
-# 🤖 Robotics Simulation Workspace
+# Robotics Simulation Workspace
 
-A comprehensive ROS2 workspace featuring three exciting robot simulations:
-1. **Professional UR5 Industrial Arm** - 6-DOF industrial robotic arm
-2. **Robotic Hand with Finger Counting** - 5-finger hand that displays finger counts (0-5)
-3. **Warehouse Robot Drop Test** - iRobot Create3-based warehouse robot with physics simulation
+A ROS 2 Jazzy workspace with two packages:
 
-## 🎯 Projects Overview
+- **`arm_simulation`** — Robotic hand simulations with ASL gesture and speech-to-gesture support
+- **`warehouse_robot`** — Autonomous warehouse delivery robot with web joystick control
 
-### 1. UR5 Robot Arm Simulation
-- 🏭 **Professional UR5 Model**: Uses official Universal Robots URDF description
-- 🎮 **Interactive Control**: Joint State Publisher GUI for manual joint control  
-- 📊 **3D Visualization**: RViz2 with pre-configured views
-- 🚀 **One-Click Launch**: Automated setup and launch script
+---
 
-### 2. Robotic Hand Finger Counting
-- ✋ **5-Finger Hand**: Realistic hand with thumb, index, middle, ring, and pinky
-- 🔢 **Finger Counting**: Show 0-5 fingers based on user commands
-- 🎮 **Real-time Control**: Command fingers via ROS2 topics
-- 📊 **3D Visualization**: Watch finger movements in RViz
+## Table of Contents
 
-### 3. Warehouse Robot Drop Test
-- 🏢 **Amazon-style Warehouse Robot**: iRobot Create3-based autonomous robot
-- 📦 **Realistic Warehouse Environment**: Complete with shelving, walls, and proper lighting
-- ⬇️ **Physics Drop Test**: Robot spawns at height and drops with realistic collision detection
-- 🛡️ **Static Ground Plane**: Properly configured collision detection that keeps the ground stable
-- 🎮 **Gazebo Simulation**: Full physics simulation with interactive controlsation Workspace
+1. [Project Structure](#project-structure)
+2. [Prerequisites](#prerequisites)
+3. [Docker Setup (Mac & Windows)](#docker-setup-mac--windows)
+4. [Native Setup (Linux)](#native-setup-linux)
+5. [Arm Simulation](#arm-simulation)
+   - [Robotic Hand — Single Hand](#robotic-hand--single-hand)
+   - [Dual Hands](#dual-hands)
+   - [Speech-to-Gesture System](#speech-to-gesture-system)
+6. [Warehouse Robot](#warehouse-robot)
+7. [ROS Topics Reference](#ros-topics-reference)
+8. [Troubleshooting](#troubleshooting)
 
-A comprehensive ROS2 workspace featuring two exciting robot simulations:
-1. **Professional UR5 Industrial Arm** - 6-DOF industrial robotic arm
-2. **Robotic Hand with Finger Counting** - 5-finger hand that displays finger counts (0-5)
+---
 
-## 🎯 Projects Overview
+## Project Structure
 
-### 1. UR5 Robot Arm Simulation
-- 🏭 **Professional UR5 Model**: Uses official Universal Robots URDF description
-- 🎮 **Interactive Control**: Joint State Publisher GUI for manual joint control  
-- 📊 **3D Visualization**: RViz2 with pre-configured views
-- 🚀 **One-Click Launch**: Automated setup and launch script
+```
+robotics/
+├── Dockerfile
+├── README.md
+└── src/
+    ├── arm_simulation/
+    │   ├── CMakeLists.txt
+    │   ├── package.xml
+    │   ├── launch/
+    │   │   ├── robotic_hand.launch.py        # Single robotic hand
+    │   │   ├── dual_hands.launch.py          # Two hands side by side
+    │   │   └── speech_to_gesture.launch.py   # Full speech-to-gesture pipeline
+    │   ├── urdf/
+    │   │   ├── robotic_hand.urdf.xacro       # Single hand model
+    │   │   └── dual_robotic_hands.urdf.xacro # Dual hand model
+    │   ├── rviz/
+    │   │   ├── robotic_hand.rviz
+    │   │   ├── dual_hands.rviz
+    │   │   └── speech_to_gesture.rviz
+    │   └── scripts/
+    │       ├── hand_controller.py
+    │       ├── enhanced_hand_controller.py
+    │       ├── dual_hand_coordinator.py
+    │       ├── asl_mapper.py
+    │       ├── gesture_sequencer.py
+    │       ├── speech_recognition_node.py
+    │       ├── speech_to_gesture_coordinator.py
+    │       ├── audio_visual_feedback.py
+    │       └── setup_speech_recognition.sh
+    └── warehouse_robot/
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── launch/
+        ├── urdf/
+        ├── worlds/
+        └── scripts/
+            ├── web_joystick_controller.py    # Primary: web-based joystick UI
+            ├── manual_robot_controller.py    # Backup: terminal WASD control
+            ├── robot_controller.py           # Autonomous waypoint navigation
+            ├── car_controller.py             # Low-level vehicle control
+            ├── generate_waypoints.py
+            ├── generate_new_waypoints.py
+            ├── show_waypoints.py
+            └── mission_log_manager.py
+```
 
-### 2. Robotic Hand Finger Counting
-- �️ **5-Finger Hand**: Realistic hand with thumb, index, middle, ring, and pinky
-- 🔢 **Finger Counting**: Show 0-5 fingers based on user commands
-- 🎮 **Real-time Control**: Command fingers via ROS2 topics
-- 📊 **3D Visualization**: Watch finger movements in RViz
+---
 
-## 📦 Installation & Setup
+## Prerequisites
 
-### Prerequisites
-- **ROS2 Jazzy** (Ubuntu 24.04 recommended)
+### System Requirements
+
+- **OS**: Ubuntu 24.04 LTS (native) or Docker (Mac/Windows)
+- **ROS 2**: Jazzy
 - **Build tools**: `colcon`, `rosdep`
-- **Git** for cloning repositories
+- **Python**: 3.10+
 
-### Clone or Download This Workspace
+### Required ROS 2 Packages
 
 ```bash
-# Option 1: Clone if this is a git repository
+sudo apt update
+sudo apt install \
+  ros-jazzy-robot-state-publisher \
+  ros-jazzy-joint-state-publisher \
+  ros-jazzy-joint-state-publisher-gui \
+  ros-jazzy-rviz2 \
+  ros-jazzy-xacro
+```
+
+### Optional — Speech Recognition
+
+```bash
+pip install SpeechRecognition pyaudio
+sudo apt install portaudio19-dev python3-pyaudio
+```
+
+> Without audio hardware, the speech-to-gesture system runs in text-only mode — all gesture control still works via ROS topics.
+
+---
+
+## Docker Setup (Mac & Windows)
+
+The Docker image bundles ROS 2 Jazzy, all dependencies, and a VNC server so you can view RViz2 from Mac or Windows without a native Linux install.
+
+### Step 1 — Install Docker Desktop
+
+Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/). Ensure it is running before proceeding.
+
+### Step 2 — Install VNC Viewer
+
+**Mac:**
+```bash
+brew install --cask vnc-viewer
+```
+
+**Windows (PowerShell):**
+```powershell
+winget install --id RealVNC.VNCViewer -e
+```
+
+### Step 3 — Build the Docker Image
+
+```bash
+cd /path/to/robotics
+docker build -t arm-sim .
+```
+
+The first build takes several minutes. Subsequent builds use the layer cache.
+
+> You may see a platform warning (`linux/amd64` on `linux/arm64`) — this is harmless. The container runs via Rosetta 2 emulation on Apple Silicon.
+
+### Step 4 — Run the Container
+
+**Mac:**
+```bash
+docker run -it \
+  --name arm-sim \
+  -p 5900:5900 \
+  arm-sim
+```
+
+**Windows:**
+```cmd
+docker run -it --name arm-sim -p 5900:5900 --security-opt seccomp=unconfined arm-sim
+```
+
+You will see:
+```
+The VNC desktop is: 0.0.0.0:0
+PORT=5900
+root@<container-id>:/ros2_ws#
+```
+
+You are now inside the container shell.
+
+### Step 5 — Connect via VNC
+
+**Mac** — open a new terminal tab and run:
+```bash
+open -a "VNC Viewer"
+```
+Connect to `localhost:5900`. Leave the password blank and click **Continue**.
+
+**Windows** — open a new PowerShell window and run:
+```powershell
+& "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" localhost:5900
+```
+
+> Use the **Scale to fit** button in VNC Viewer to fit the desktop to your window.
+
+### Step 6 — Launch a Simulation
+
+In the **container terminal**, run one of the launch commands from the sections below. The RViz2 window will appear in the VNC Viewer.
+
+### Container Management
+
+| Task | Command |
+|------|---------|
+| Stop the container | `docker stop arm-sim` |
+| Restart and re-attach | `docker start -ai arm-sim` |
+| Open a second terminal in the container | `docker exec -it arm-sim bash` |
+| Remove the container (keeps image) | `docker rm arm-sim` |
+| Rebuild after code changes | `docker rm -f arm-sim && docker build -t arm-sim . && docker run -it --name arm-sim -p 5900:5900 arm-sim` |
+
+---
+
+## Native Setup (Linux)
+
+```bash
+# Clone the workspace
 git clone <repository-url> ~/ros2_ws
 cd ~/ros2_ws
 
-# Option 2: Create workspace manually
-mkdir -p ~/ros2_ws/src
-# Copy the arm_simulation folder to ~/ros2_ws/src/
-# Copy launch_arm_sim.sh and .gitignore to ~/ros2_ws/
-```
-
-### Build the Workspace
-
-```bash
-# Install dependencies
-cd ~/ros2_ws
+# Install ROS dependencies
 rosdep install --from-paths src --ignore-src -r -y
 
-# Install additional packages for robotic hand and warehouse robot
-sudo apt update
-sudo apt install ros-jazzy-robot-state-publisher \
-                 ros-jazzy-joint-state-publisher \
-                 ros-jazzy-joint-state-publisher-gui \
-                 ros-jazzy-rviz2 \
-                 ros-jazzy-xacro \
-                 ros-jazzy-ur-description \
-                 ros-jazzy-irobot-create-description \
-                 ros-jazzy-irobot-create-gz-sim \
-                 ros-jazzy-ros-gz-sim \
-                 ros-jazzy-ros-gz-bridge
-
-# Build workspace
+# Build
 colcon build --symlink-install
 
-# Source workspace
+# Source
 source install/setup.bash
 ```
 
-### Option 3: Warehouse Robot Drop Test
+---
 
-1. **Launch the warehouse robot simulation**:
-   ```bash
-   cd ~/ros2_ws
-   source install/setup.bash
-   ros2 launch irobot_create_gz_bringup create3_gz.launch.py robot_name:=warehouse_robot z:=2.0
-   ```
+## Arm Simulation
 
-2. **Control the warehouse robot** (in a new terminal):
-   ```bash
-   cd ~/ros2_ws
-   source install/setup.bash
-   
-   # Move forward
-   ros2 topic pub /cmd_vel geometry_msgs/msg/TwistStamped "{
-     header: {stamp: {sec: 0, nanosec: 0}, frame_id: ''},
-     twist: {linear: {x: 0.2, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}
-   }" --once
-   
-   # Turn left
-   ros2 topic pub /cmd_vel geometry_msgs/msg/TwistStamped "{
-     header: {stamp: {sec: 0, nanosec: 0}, frame_id: ''},
-     twist: {linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.5}}
-   }" --once
-   
-   # Stop robot
-   ros2 topic pub /cmd_vel geometry_msgs/msg/TwistStamped "{
-     header: {stamp: {sec: 0, nanosec: 0}, frame_id: ''},
-     twist: {linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}
-   }" --once
-   ```
+### Robotic Hand — Single Hand
 
-### Option 1: Robotic Hand Finger Counting
+A 5-finger robotic hand with ASL gesture support and real-time finger counting.
 
-1. **Launch the robotic hand simulation**:
-   ```bash
-   cd ~/ros2_ws
-   source install/setup.bash
-   ros2 launch arm_simulation robotic_hand.launch.py
-   ros2 launch arm_simulation speech_to_gesture.launch.py
-   ```
-
-2. **Control finger count** (in a new terminal):
-   ```bash
-   cd ~/ros2_ws
-   source install/setup.bash
-   
-   # Show 1 finger
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 1" --once
-   
-   # Show 2 fingers
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 2" --once
-   
-   # Show 3 fingers
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 3" --once
-   
-   # Show 4 fingers
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 4" --once
-   
-   # Show 5 fingers (open hand)
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 5" --once
-   
-   # Close hand (fist)
-   ros2 topic pub /finger_count std_msgs/msg/Int32 "data: 0" --once
-   ```
-
-## 📁 Project Structure
-
-```
-~/ros2_ws/
-├── src/
-│   ├── arm_simulation/                    # Main robotics package
-│   │   ├── CMakeLists.txt                # Build configuration
-│   │   ├── package.xml                   # Package dependencies
-│   │   ├── launch/
-│   │   │   ├── view_arm.launch.py        # UR5 arm simulation
-│   │   │   └── robotic_hand.launch.py    # Robotic hand simulation
-│   │   ├── urdf/
-│   │   │   └── robotic_hand.urdf.xacro   # Hand robot description
-│   │   ├── scripts/
-│   │   │   ├── hand_controller.py        # Hand controller node
-│   │   │   └── test_hand.py              # Test script
-│   │   └── rviz/
-│   │       ├── ur5_arm.rviz              # UR5 RViz config
-│   │       └── robotic_hand.rviz         # Hand RViz config
-│   └── warehouse_robot/                  # Warehouse robot package
-│       ├── CMakeLists.txt                # Build configuration
-│       ├── package.xml                   # Package dependencies
-│       ├── launch/
-│       │   ├── warehouse_simulation.launch.py  # Main simulation launch
-│       │   └── simple_warehouse_sim.launch.py  # Simple launch
-│       ├── urdf/
-│       │   └── warehouse_robot.urdf.xacro      # Robot description
-│       ├── worlds/
-│       │   └── warehouse_world.sdf             # Warehouse world
-│       ├── config/
-│       │   └── control.yaml                    # Robot control config
-│       └── rviz/
-│           └── warehouse_robot.rviz            # Warehouse RViz config
-├── .gitignore                            # Git ignore file
-├── README.md                             # This documentation
-└── launch_arm_sim.sh                     # UR5 launch script
-```
-
-### Git Repository Setup
-
-This workspace includes a comprehensive `.gitignore` file that excludes:
-- ROS 2 build artifacts (`build/`, `install/`, `log/`)
-- IDE configurations (`.vscode/`, `.idea/`)
-- Python cache files (`__pycache__/`, `*.pyc`)
-- System files (`.DS_Store`, `Thumbs.db`)
-- ROS data files (`*.bag`, `*.db3`, `*.mcap`)
-
-Only essential source files are tracked in git.
-
-## 🔧 Advanced Usage
-
-### Monitor Robotic Hand Status
+**Launch:**
 ```bash
-# Check active topics
+ros2 launch arm_simulation robotic_hand.launch.py
+```
+
+**Open a second terminal into the container (Docker) or a new terminal (native):**
+```bash
+docker exec -it arm-sim bash   # Docker only
+source install/setup.bash
+```
+
+**Finger counting (0–5):**
+```bash
+# Fist
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 0}" --once
+
+# 1 finger
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 1}" --once
+
+# 3 fingers
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 3}" --once
+
+# Open hand (5 fingers)
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 5}" --once
+```
+
+**ASL letter gestures:**
+```bash
+# Letter A (fist)
+ros2 topic pub /gesture_command std_msgs/msg/String "{data: a}" --once
+
+# Letter L shape
+ros2 topic pub /gesture_command std_msgs/msg/String "{data: l}" --once
+
+# Letter V (peace sign)
+ros2 topic pub /gesture_command std_msgs/msg/String "{data: v}" --once
+
+# Letter I (pinky up)
+ros2 topic pub /gesture_command std_msgs/msg/String "{data: i}" --once
+
+# Reset to neutral
+ros2 topic pub /gesture_command std_msgs/msg/String "{data: neutral}" --once
+```
+
+Supported gestures: `a` through `z`, `hello`, `neutral`
+
+**Spell a letter via letter_command:**
+```bash
+ros2 topic pub /letter_command std_msgs/msg/String "{data: r}" --once
+```
+
+---
+
+### Dual Hands
+
+Two robotic hands side by side. Supports combined finger counting (0–10), two-character word spelling, single-letter display on both hands, and independent per-hand control.
+
+**Launch:**
+```bash
+ros2 launch arm_simulation dual_hands.launch.py
+```
+
+Open a second terminal into the container or a new native terminal, then:
+
+**Combined finger count (0–10) — splits automatically across both hands:**
+```bash
+# 8 total → left=5, right=3
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 8}" --once
+
+# 3 total → left=3, right=0
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 3}" --once
+
+# 10 total → left=5, right=5
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 10}" --once
+```
+
+**Two-character word spelling — right hand = first character, left hand = second:**
+```bash
+ros2 topic pub /letter_command std_msgs/msg/String "{data: ab}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: go}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: it}" --once
+```
+
+**Single letter — both hands display the same letter:**
+```bash
+ros2 topic pub /letter_command std_msgs/msg/String "{data: a}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: z}" --once
+```
+
+**Independent hand control:**
+```bash
+# Per-hand gestures
+ros2 topic pub /left/gesture_command std_msgs/msg/String "{data: v}" --once
+ros2 topic pub /right/gesture_command std_msgs/msg/String "{data: a}" --once
+
+# Per-hand ASL letters
+ros2 topic pub /left/letter_command std_msgs/msg/String "{data: l}" --once
+ros2 topic pub /right/letter_command std_msgs/msg/String "{data: r}" --once
+
+# Per-hand finger count
+ros2 topic pub /left/finger_count std_msgs/msg/Int32 "{data: 3}" --once
+ros2 topic pub /right/finger_count std_msgs/msg/Int32 "{data: 5}" --once
+```
+
+---
+
+### Speech-to-Gesture System
+
+Translates spoken words into ASL gestures in real time. The system runs fully in text-only mode if no microphone is available.
+
+#### System Architecture
+
+| Node | Script | Role |
+|------|--------|------|
+| Speech Recognition | `speech_recognition_node.py` | Captures audio, converts to text via Google Speech API or offline engine, publishes to `/recognized_speech` |
+| ASL Mapper | `asl_mapper.py` | Maps letters, numbers, and words to hand joint configurations |
+| Enhanced Hand Controller | `enhanced_hand_controller.py` | Controls hand joint positions with smooth transitions |
+| Gesture Sequencer | `gesture_sequencer.py` | Manages multi-gesture sequences with timing and pause/stop support |
+| Speech-to-Gesture Coordinator | `speech_to_gesture_coordinator.py` | Main pipeline orchestrator |
+| Audio-Visual Feedback | `audio_visual_feedback.py` | Audio cues and RViz status markers |
+
+#### Launch
+
+```bash
+ros2 launch arm_simulation speech_to_gesture.launch.py
+```
+
+This starts all nodes. The system begins listening for speech automatically and displays gestures on the robotic hand in RViz.
+
+#### Text-Only Control (No Microphone Required)
+
+All gesture functionality works via ROS topics without audio:
+
+```bash
+# Convert text to gesture sequence (finger spelling)
+ros2 topic pub /text_to_sequence std_msgs/msg/String '{data: "cat"}' --once
+
+# Individual letters
+ros2 topic pub /letter_command std_msgs/msg/String '{data: "a"}' --once
+
+# Pre-defined word gestures
+ros2 topic pub /gesture_command std_msgs/msg/String '{data: "hello"}' --once
+
+# Finger counting
+ros2 topic pub /finger_count std_msgs/msg/Int32 '{data: 3}' --once
+```
+
+#### High-Level User Commands
+
+```bash
+# Start / stop voice listening
+ros2 topic pub /user_command std_msgs/msg/String '{data: "start listening"}' --once
+ros2 topic pub /user_command std_msgs/msg/String '{data: "stop listening"}' --once
+
+# Run built-in demonstrations
+ros2 topic pub /user_command std_msgs/msg/String '{data: "demo alphabet"}' --once
+ros2 topic pub /user_command std_msgs/msg/String '{data: "demo numbers"}' --once
+ros2 topic pub /user_command std_msgs/msg/String '{data: "demo words"}' --once
+
+# Inline gesture from text
+ros2 topic pub /user_command std_msgs/msg/String '{data: "gesture hello"}' --once
+
+# Status and reset
+ros2 topic pub /user_command std_msgs/msg/String '{data: "status"}' --once
+ros2 topic pub /user_command std_msgs/msg/String '{data: "reset"}' --once
+```
+
+#### ASL Gesture Library
+
+- **Alphabet**: A–Z complete ASL hand shapes
+- **Numbers**: 0–9 standard ASL representations
+- **Common words**: hello, goodbye, please, thank you, yes, no
+- **Emergency phrases**: help, emergency, call 911, doctor, hospital
+
+**Adding custom gestures** — edit `asl_mapper.py`:
+```python
+asl_mapper.save_custom_gesture('new_word', joint_configuration, 'words')
+```
+
+#### Hand Joint Configuration
+
+The robotic hand has 14 controllable joints:
+
+| Finger | Joints |
+|--------|--------|
+| Thumb | base, proximal (2) |
+| Index | base, proximal, middle (3) |
+| Middle | base, proximal, middle (3) |
+| Ring | base, proximal, middle (3) |
+| Pinky | base, proximal, middle (3) |
+
+Joint positions range from `0.0` (fully extended) to `1.4+` (fully bent).
+
+#### Enabling Speech Recognition
+
+To enable voice input on a system with audio hardware:
+
+```bash
+# Install audio dependencies
+sudo apt install portaudio19-dev python3-pyaudio
+pip install SpeechRecognition pyaudio
+
+# Run the setup script
+./src/arm_simulation/scripts/setup_speech_recognition.sh
+```
+
+**Verify your environment:**
+```bash
+# Check for audio devices
+ls /dev/snd/ 2>/dev/null || echo "No audio devices found"
+
+# Check if running in Docker
+[ -f /.dockerenv ] && echo "Running in Docker" || echo "Running natively"
+
+# Test speech recognition library
+python3 -c "import speech_recognition as sr; print('SR available'); mic = sr.Microphone(); print('Microphone available')"
+```
+
+**Docker with audio support:**
+```bash
+docker run -it --privileged \
+  --device /dev/snd \
+  -v /dev/shm:/dev/shm \
+  -p 5900:5900 \
+  arm-sim
+```
+
+---
+
+## Warehouse Robot
+
+An autonomous warehouse delivery robot with web joystick control, waypoint navigation, and mission logging.
+
+### Launch
+
+```bash
+# Terminal 1 — start the Gazebo simulation
+ros2 launch warehouse_robot warehouse_with_joystick.launch.py
+
+# Terminal 2 — start the web joystick controller
+cd ~/ros2_ws
+python3 src/warehouse_robot/scripts/web_joystick_controller.py
+```
+
+Open `http://localhost:8080/joystick.html` in a browser to use the drag-drop joystick UI.
+
+### Manual Terminal Control (Backup)
+
+```bash
+python3 src/warehouse_robot/scripts/manual_robot_controller.py
+```
+
+Uses WASD keys with real-time speed adjustment.
+
+### Direct cmd_vel Control
+
+```bash
+# Move forward
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{linear: {x: 1.0}}" --once
+
+# Turn left
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{angular: {z: 1.0}}" --once
+
+# Turn right
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{angular: {z: -1.0}}" --once
+
+# Stop
+ros2 topic pub /model/warehouse_car/cmd_vel geometry_msgs/msg/Twist "{}" --once
+```
+
+### Autonomous Navigation
+
+```bash
+source install/setup.bash
+
+# Go to package pickup location
+ros2 run warehouse_robot robot_controller.py pickup
+
+# Deliver package to destination
+ros2 run warehouse_robot robot_controller.py deliver
+
+# Return to start
+ros2 run warehouse_robot robot_controller.py return
+
+# Full mission: pickup → deliver → return (with logging)
+ros2 run warehouse_robot robot_controller.py mission
+
+# Move to specific coordinates
+ros2 run warehouse_robot robot_controller.py goto 2.0 3.0
+
+# Show robot status
+ros2 run warehouse_robot robot_controller.py status
+
+# Stop immediately
+ros2 run warehouse_robot robot_controller.py stop
+```
+
+### Waypoint Management
+
+```bash
+# Generate new waypoints interactively
+python3 src/warehouse_robot/scripts/generate_new_waypoints.py
+
+# View current waypoints
+python3 src/warehouse_robot/scripts/show_waypoints.py
+```
+
+### Mission Logging
+
+Mission logs are saved to `~/ros2_ws/mission_logs/` and include timestamps, positions, commands, and duration.
+
+```bash
+# List all mission logs
+python3 src/warehouse_robot/scripts/mission_log_manager.py list
+
+# View the latest log
+python3 src/warehouse_robot/scripts/mission_log_manager.py latest
+
+# Summary across all missions
+python3 src/warehouse_robot/scripts/mission_log_manager.py summary
+
+# Clean old logs (keep 10 newest)
+python3 src/warehouse_robot/scripts/mission_log_manager.py clean
+
+# Keep only 5 newest
+python3 src/warehouse_robot/scripts/mission_log_manager.py clean 5
+```
+
+### Keyboard Teleop
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard \
+  --ros-args --remap cmd_vel:=/model/warehouse_car/cmd_vel
+```
+
+---
+
+## ROS Topics Reference
+
+### Arm Simulation — Single Hand
+
+| Topic | Type | Direction | Description |
+|-------|------|-----------|-------------|
+| `/finger_count` | `std_msgs/Int32` | Input | Set finger count 0–5 |
+| `/gesture_command` | `std_msgs/String` | Input | Named gesture (a–z, hello, neutral) |
+| `/letter_command` | `std_msgs/String` | Input | Single ASL letter (a–z) |
+| `/text_to_sequence` | `std_msgs/String` | Input | Spell out any text as a gesture sequence |
+| `/user_command` | `std_msgs/String` | Input | High-level commands (demo, reset, status…) |
+| `/recognized_speech` | `std_msgs/String` | Input | Text from speech recognition node |
+| `/joint_states` | `sensor_msgs/JointState` | Output | Current hand joint positions |
+| `/current_gesture` | `std_msgs/String` | Output | Active gesture name |
+| `/sequence_status` | `std_msgs/String` | Output | Gesture sequence playback status |
+| `/system_status` | `std_msgs/String` | Output | Overall system status |
+
+### Arm Simulation — Dual Hands (additional topics)
+
+| Topic | Type | Description |
+|-------|------|-------------|
+| `/finger_count` | `std_msgs/Int32` | Combined count 0–10, splits automatically |
+| `/left/finger_count` | `std_msgs/Int32` | Left hand only (0–5) |
+| `/right/finger_count` | `std_msgs/Int32` | Right hand only (0–5) |
+| `/left/gesture_command` | `std_msgs/String` | Gesture on left hand |
+| `/right/gesture_command` | `std_msgs/String` | Gesture on right hand |
+| `/left/letter_command` | `std_msgs/String` | ASL letter on left hand |
+| `/right/letter_command` | `std_msgs/String` | ASL letter on right hand |
+
+### Useful Diagnostics
+
+```bash
+# List all active topics
 ros2 topic list
+
+# List all running nodes
+ros2 node list
 
 # Monitor joint states
 ros2 topic echo /joint_states
 
-# Check hand controller logs
-ros2 node info /hand_controller
+# Watch the active gesture
+ros2 topic echo /current_gesture
 
-# Monitor finger count commands
-ros2 topic echo /finger_count
+# Watch speech recognition output
+ros2 topic echo /recognized_speech
+
+# Watch system status
+ros2 topic echo /system_status
 ```
 
-### UR5 Arm Manual Control
+---
+
+## Troubleshooting
+
+### Arm Simulation
+
+**Package not found after build:**
 ```bash
-# Launch UR5 with manual control
-ros2 launch arm_simulation view_arm.launch.py
-
-# Use Joint State Publisher GUI to control 6 joints:
-# - shoulder_pan, shoulder_lift, elbow
-# - wrist_1, wrist_2, wrist_3
-```
-
-### Custom Testing Script for Hand
-```bash
-# Run automated finger counting demo
-cd ~/ros2_ws
-source install/setup.bash
-python3 src/arm_simulation/scripts/test_hand.py
-```
-
-## 🎯 What You'll See
-
-### UR5 Robot Arm Simulation
-- **Joint State Publisher GUI**: Control panel with 6 joint sliders
-- **RViz2**: 3D visualization of the UR5 robot arm
-- **Professional UR5 Model**: Realistic industrial robot appearance
-
-### Robotic Hand Simulation
-- **3D Hand Model**: Realistic 5-finger robotic hand
-- **Real-time Finger Control**: Watch fingers move based on commands
-- **Smooth Animations**: Natural finger movements between configurations
-- **Joint Visualization**: See all finger joints and their movements
-
-### Warehouse Robot Drop Test
-- **Realistic Warehouse Environment**: Complete depot with shelving, walls, and realistic textures
-- **iRobot Create3 Model**: Professional warehouse robot with sensors and collision detection
-- **Physics Drop Test**: Watch the robot fall from 2 meters height and bounce realistically
-- **Interactive Controls**: Use Gazebo's built-in teleop controls or ROS2 commands
-- **Ground Collision**: Observe realistic collision detection with the static ground plane
-
-## Dependencies
-
-### Core Dependencies
-
-- **`ros-jazzy-ur-description`** - Official Universal Robots UR5 model package
-  - **GitHub**: https://github.com/UniversalRobots/Universal_Robots_ROS2_Description
-  - **Manual Installation**: `sudo apt install ros-jazzy-ur-description`
-  - **Auto-installed** by launch script
-
-- **Standard ROS 2 Packages** (auto-installed):
-  - `robot_state_publisher` - Robot state publishing
-  - `joint_state_publisher_gui` - Interactive joint control
-  - `rviz2` - 3D visualization
-
-### Manual Dependency Installation
-
-If you want to install dependencies manually:
-
-```bash
-# Update package list
-sudo apt update
-
-# Install UR5 robot description package
-sudo apt install ros-jazzy-ur-description
-
-# Install workspace dependencies via rosdep
-cd ~/ros2_ws
-rosdep install --from-paths src --ignore-src -r -y
-
-# Install additional ROS 2 packages if needed
-sudo apt install ros-jazzy-robot-state-publisher \
-                 ros-jazzy-joint-state-publisher-gui \
-                 ros-jazzy-rviz2
-```
-
-### System Requirements
-
-- **ROS 2 Jazzy** (Ubuntu 24.04 recommended)
-- **Ubuntu 24.04 LTS** or compatible
-- **Git** for cloning repositories
-- **Build tools**: `colcon`, `rosdep`
-
-## 🐛 Troubleshooting
-
-### Common Issues and Solutions
-
-**Problem:** `Package 'arm_simulation' not found`
-```bash
-# Solution: Make sure workspace is built and sourced
 cd ~/ros2_ws
 colcon build --packages-select arm_simulation
 source install/setup.bash
 ```
 
-**Problem:** `No executable found` (for robotic hand)
+**RViz shows no robot:**
 ```bash
-# Solution: Ensure scripts are executable
-chmod +x ~/ros2_ws/src/arm_simulation/scripts/hand_controller.py
-chmod +x ~/ros2_ws/src/arm_simulation/scripts/test_hand.py
-```
-
-**Problem:** RViz doesn't show the robot
-```bash
-# Solution: Check robot_description topic
+# Verify robot_description is being published
 ros2 topic echo /robot_description --once
 
-# Make sure robot_state_publisher is running
+# Check robot_state_publisher is running
 ros2 node list | grep robot_state_publisher
 ```
 
-**Problem:** Hand doesn't respond to finger commands
+**Hand does not respond to commands:**
 ```bash
-# Check if hand_controller is running
+# Check that hand_controller is running
 ros2 node list | grep hand_controller
 
-# Verify topic is published correctly
+# Confirm the topic exists
 ros2 topic info /finger_count
 
-# Check for error messages
+# View node subscriptions
 ros2 node info /hand_controller
 ```
 
-**Problem:** Only see joint axes but no robot in UR5 simulation
-1. Check RViz2 → Displays → RobotModel is enabled
-2. Verify "Visual Enabled" is checked
-3. Try zooming out or resetting the view
-4. Ensure `/robot_description` topic is active
+**Warning: "KDL does not support root link with inertia"**
+- Harmless — the simulation works correctly.
 
-**Warning:** "KDL does not support root link with inertia"
-- This is a harmless warning and doesn't affect functionality
-- The simulation will work correctly despite this message
-
-### Getting Help
+**Speech recognition not working:**
 ```bash
-# List all available topics
-ros2 topic list
+# Test library availability
+python3 -c "import speech_recognition as sr; sr.Microphone()"
 
-# Get topic information
-ros2 topic info /finger_count
+# Install offline fallback
+pip install pocketsphinx
 
-# Monitor topic data
-ros2 topic echo /finger_count
-
-# Check running nodes
-ros2 node list
-
-# Get node information
-ros2 node info /hand_controller
+# Use text-only mode instead
+ros2 topic pub /text_to_sequence std_msgs/msg/String '{data: "hello"}' --once
 ```
 
-## 🎯 Next Steps & Project Ideas
+### Docker / VNC
 
-### Robotic Hand Extensions
-- Experiment with different finger combinations
-- Create custom gesture sequences
-- Add voice control integration
-- Implement computer vision for gesture recognition
-- Create automated finger counting games
-- Add haptic feedback simulation
+**VNC Viewer stuck on connecting:**
+- macOS built-in Screen Sharing does not work — use VNC Viewer only.
 
-### UR5 Arm Extensions
-- Add trajectory planning and execution
-- Implement pick-and-place operations
-- Create waypoint-based movement
-- Add end-effector attachments
-- Integrate motion planning frameworks
+**VNC connection failed or cannot connect to display:**
+```bash
+docker rm -f arm-sim
+docker run -it --name arm-sim -p 5900:5900 arm-sim
+```
+Connect with VNC Viewer to `localhost:5900` before running any launch commands.
 
-### Combined Projects
-- Mount the robotic hand on the UR5 arm
-- Create complete manipulation scenarios
-- Implement object grasping simulations
-- Add sensor integration (cameras, force sensors)
+**Blank screen in VNC:**
+- No simulation has been launched yet — run a launch command in the container terminal.
 
-## 📚 Learning Resources
+**Cannot move the RViz window:**
+- The Openbox window manager is included — windows have title bars and can be dragged.
 
-- **ROS2 Documentation**: https://docs.ros.org/en/jazzy/
-- **Universal Robots ROS2**: https://github.com/UniversalRobots/Universal_Robots_ROS2_Description
-- **URDF Tutorials**: http://wiki.ros.org/urdf/Tutorials
-- **RViz User Guide**: https://docs.ros.org/en/jazzy/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html
+**Build fails with `python3-pyaudio` error:**
+- Already handled — the Dockerfile skips it with `--skip-keys`.
 
----
-
-**Happy robotics simulation! 🤖🖐️👍**
-
-
-
-Craete a new package called warehouse_robot. Use an existing car urdf file and place it on top of a ground plane in the world. The car has to drop from a height onto the plane and the ground should have collision detection and should not fall down in the world ans should stay static in the world. I want to use Gazebo sim
+**Platform warning during build (`linux/amd64` on `linux/arm64`):**
+- Harmless — the image runs via Rosetta 2 on Apple Silicon.

@@ -38,26 +38,33 @@ SIGNING_POSE = {
 }
 
 # ─────────────────────────────────────────────────────────────
-# ✅ FINAL FIX: Right-hand-only ASL "1" pose (correct orientation)
+# ASL "1" pose — right arm only
+#
+# Axes confirmed from TF image:
+#   X (red)   = left/right (outward from shoulders)
+#   Y (green) = toward camera (forward)
+#   Z (blue)  = up
+#
+# shoulder_roll  (X axis): positive → arm swings FORWARD toward camera
+# shoulder_pitch (Y axis): positive → arm swings outward/left (lateral)
+# elbow_pitch    (Y axis): positive → forearm bends (same plane as shoulder_pitch)
+# wrist_pitch    (Y axis): positive → wrist tilts (adjust palm direction)
 # ─────────────────────────────────────────────────────────────
 RIGHT_HAND_1_POSE = {
-    # LEFT arm → fully neutral (no movement at all)
-    'left_shoulder_pitch':  0.0,
-    'left_shoulder_roll':   0.0,
-    'left_elbow_pitch':     0.0,
-    'left_wrist_pitch':     0.0,
+    # LEFT arm — stays neutral
+    'left_shoulder_pitch': 0.0,
+    'left_shoulder_roll':  0.0,
+    'left_elbow_pitch':    0.0,
+    'left_wrist_pitch':    0.0,
 
-    # RIGHT arm → rotated inward + forward
-    'right_shoulder_pitch': 0.60,   # more forward lift
-    'right_shoulder_roll': -0.60,   # strong inward rotation (KEY FIX)
-    'right_elbow_pitch':    1.35,   # bend forward correctly
+    # RIGHT arm — raised forward, palm toward camera
+    'right_shoulder_roll':  0.8,   # brings arm FORWARD toward camera (X axis, positive = toward Y)
+    'right_shoulder_pitch': 0.2,   # slight inward to center arm in front of body
+    'right_elbow_pitch':    1.0,   # bend elbow so forearm angles upward
+    'right_wrist_pitch':    0.5,   # tilt wrist so palm faces camera
 
-    # Wrist → face camera
-    'right_wrist_pitch':   -0.90,
-
-    # Head (optional realism)
-    'neck_pitch':           0.1,
-    'neck_yaw':             0.0,
+    'neck_pitch': 0.1,
+    'neck_yaw':   0.0,
 }
 
 # ─────────────────────────────────────────────────────────────

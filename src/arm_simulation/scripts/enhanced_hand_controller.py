@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import sys
+import os
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
@@ -7,6 +10,20 @@ from std_msgs.msg import Int32, String
 from geometry_msgs.msg import PoseArray, Pose
 import math
 import time
+
+try:
+    from ament_index_python.packages import get_package_prefix
+    _pkg_lib = os.path.join(get_package_prefix('arm_simulation'), 'lib', 'arm_simulation')
+    if _pkg_lib not in sys.path:
+        sys.path.insert(0, _pkg_lib)
+except Exception:
+    pass
+
+try:
+    from asl_mapper import ASLMapper as _ASLMapper
+    _asl_numbers = _ASLMapper().asl_numbers
+except Exception:
+    _asl_numbers = {}
 
 class EnhancedHandController(Node):
     """
@@ -366,16 +383,21 @@ class EnhancedHandController(Node):
             self.get_logger().info(f'Set hand to show {count} finger(s)')
     
     def gesture_command_callback(self, msg):
-        """Handle named gesture commands (words/phrases)"""
+        """Handle named gesture commands (words/phrases and numbers)"""
         gesture_name = msg.data.lower().strip()
-        
+
         if gesture_name in self.asl_alphabet:
             config = self.asl_alphabet[gesture_name]
             self.set_hand_configuration(config, gesture_name)
             self.get_logger().info(f'Performing gesture: "{gesture_name}"')
+        elif gesture_name in _asl_numbers:
+            config = _asl_numbers[gesture_name]
+            self.set_hand_configuration(config, gesture_name)
+            self.get_logger().info(f'Performing number gesture: "{gesture_name}"')
         else:
             self.get_logger().warn(f'Unknown gesture: "{gesture_name}"')
             self.get_logger().info(f'Available gestures: {", ".join(self.asl_alphabet.keys())}')
+            self.get_logger().info(f'Available numbers: {", ".join(_asl_numbers.keys())}')
     
     def letter_command_callback(self, msg):
         """Handle single letter finger spelling commands"""

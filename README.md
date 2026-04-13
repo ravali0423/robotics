@@ -2,7 +2,7 @@
 
 A ROS 2 Jazzy workspace with two packages:
 
-- **`arm_simulation`** — Robotic hand simulations with ASL gesture and speech-to-gesture support
+- **`arm_simulation`** — Robotic hand simulations with ASL gesture, speech-to-gesture, and full humanoid sign language interpreter
 - **`warehouse_robot`** — Autonomous warehouse delivery robot with web joystick control
 
 ---
@@ -16,6 +16,7 @@ A ROS 2 Jazzy workspace with two packages:
 5. [Arm Simulation](#arm-simulation)
    - [Robotic Hand — Single Hand](#robotic-hand--single-hand)
    - [Dual Hands](#dual-hands)
+   - [Humanoid Sign Language Interpreter](#humanoid-sign-language-interpreter)
    - [Speech-to-Gesture System](#speech-to-gesture-system)
 6. [Warehouse Robot](#warehouse-robot)
 7. [ROS Topics Reference](#ros-topics-reference)
@@ -36,19 +37,25 @@ robotics/
     │   ├── launch/
     │   │   ├── robotic_hand.launch.py        # Single robotic hand
     │   │   ├── dual_hands.launch.py          # Two hands side by side
+    │   │   ├── humanoid_robot.launch.py      # Full humanoid sign language interpreter
     │   │   └── speech_to_gesture.launch.py   # Full speech-to-gesture pipeline
     │   ├── urdf/
     │   │   ├── robotic_hand.urdf.xacro       # Single hand model
-    │   │   └── dual_robotic_hands.urdf.xacro # Dual hand model
+    │   │   ├── dual_robotic_hands.urdf.xacro # Dual hand model
+    │   │   └── humanoid_robot.urdf.xacro     # Full humanoid body (head to toe)
     │   ├── rviz/
     │   │   ├── robotic_hand.rviz
     │   │   ├── dual_hands.rviz
+    │   │   ├── humanoid_robot.rviz           # Full-body view
     │   │   └── speech_to_gesture.rviz
     │   └── scripts/
     │       ├── hand_controller.py
     │       ├── enhanced_hand_controller.py
     │       ├── dual_hand_coordinator.py
-    │       ├── asl_mapper.py
+    │       ├── asl_mapper.py                 # ASL hand shape library
+    │       ├── asl_body_postures.py          # ASL body posture data (hello, 1–10)
+    │       ├── body_controller.py            # Humanoid body joint controller
+    │       ├── humanoid_sign_coordinator.py  # Sign language orchestrator
     │       ├── gesture_sequencer.py
     │       ├── speech_recognition_node.py
     │       ├── speech_to_gesture_coordinator.py
@@ -322,6 +329,82 @@ ros2 topic pub /right/finger_count std_msgs/msg/Int32 "{data: 5}" --once
 
 ---
 
+### Humanoid Sign Language Interpreter
+
+A full humanoid robot (~1.5 m tall) that performs American Sign Language signs with coordinated arm, hand, and head motion. Send a single `/sign_command` topic and the entire body animates: arms raise to the correct position, fingers form the right shape, and the head follows — all simultaneously.
+
+#### System Architecture
+
+| Node | Script | Role |
+|------|--------|------|
+| Sign Coordinator | `humanoid_sign_coordinator.py` | Receives `/sign_command`, sequences body + hand commands in a background thread |
+| Body Controller | `body_controller.py` | Drives 10 body joints (shoulders, elbows, wrists, neck) at 10 Hz with smooth interpolation |
+| Left Hand Controller | `enhanced_hand_controller.py` | Controls 14 left finger joints |
+| Right Hand Controller | `enhanced_hand_controller.py` | Controls 14 right finger joints |
+| Dual Hand Coordinator | `dual_hand_coordinator.py` | Routes combined hand commands to left/right controllers |
+| Robot State Publisher | (ROS built-in) | Merges all `/joint_states` and publishes TF for RViz |
+
+#### Launch
+
+```bash
+ros2 launch arm_simulation humanoid_robot.launch.py
+```
+
+The RViz window opens with a full-body view. The robot starts in a neutral standing pose.
+
+#### Performing Signs
+
+Open a second terminal in the container:
+```bash
+docker exec -it arm-sim bash
+```
+
+**Hello** — right arm raises to forehead and sweeps outward:
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "hello"'
+```
+
+**Numbers 1–9** — both arms move to a signing-ready position, right hand forms the number shape:
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "1"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "5"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "9"'
+```
+
+**Number 10** — right wrist oscillates (ASL thumb wave):
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "10"'
+```
+
+**Supported signs:** `hello`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`
+
+#### Manual Body Control (Testing)
+
+Drive individual body joints directly without a sign command:
+```bash
+# Raise right arm
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String \
+  'data: "{\"right_shoulder_pitch\": 0.8, \"right_elbow_pitch\": 1.2}"'
+
+# Return to neutral
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String 'data: "neutral"'
+
+# Signing-ready pose
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String 'data: "signing_ready"'
+```
+
+#### Rebuild After Code Changes
+
+The new files are baked into the Docker image at build time. After any change to scripts or URDF:
+```bash
+# On your host machine, from the robotics/ directory
+docker rm -f arm-sim
+docker build -t arm-sim .
+docker run -it --name arm-sim -p 5900:5900 arm-sim
+```
+
+---
+
 ### Speech-to-Gesture System
 
 Translates spoken words into ASL gestures in real time. The system runs fully in text-only mode if no microphone is available.
@@ -570,6 +653,18 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard \
 | `/sequence_status` | `std_msgs/String` | Output | Gesture sequence playback status |
 | `/system_status` | `std_msgs/String` | Output | Overall system status |
 
+### Arm Simulation — Humanoid Sign Language Interpreter
+
+| Topic | Type | Direction | Description |
+|-------|------|-----------|-------------|
+| `/sign_command` | `std_msgs/String` | Input | Trigger a full sign: `hello`, `1`–`10` |
+| `/body_pose_command` | `std_msgs/String` | Input | Pose name (`neutral`, `signing_ready`) or JSON joint dict |
+| `/right/gesture_command` | `std_msgs/String` | Input | Right hand shape (routed from sign coordinator) |
+| `/left/gesture_command` | `std_msgs/String` | Input | Left hand shape |
+| `/sign_status` | `std_msgs/String` | Output | `performing` \| `complete` \| `busy` \| `error` |
+| `/body_status` | `std_msgs/String` | Output | `ready` \| `moving` \| `<pose_name>` |
+| `/joint_states` | `sensor_msgs/JointState` | Output | All 38 joints (10 body + 14×2 hands) merged |
+
 ### Arm Simulation — Dual Hands (additional topics)
 
 | Topic | Type | Description |
@@ -637,6 +732,21 @@ ros2 topic info /finger_count
 # View node subscriptions
 ros2 node info /hand_controller
 ```
+
+**Humanoid robot sign command ignored ("busy"):**
+- A sign is already in progress. Wait for `/sign_status` to publish `complete`, then send the next command.
+
+**Body joints not moving after `/body_pose_command`:**
+```bash
+# Confirm body_controller is running
+ros2 node list | grep body_controller
+
+# Check it is receiving commands
+ros2 topic echo /body_pose_command
+```
+
+**RViz shows hands detached from arms:**
+- The URDF was not rebuilt. Rebuild the Docker image so the new `humanoid_robot.urdf.xacro` is picked up.
 
 **Warning: "KDL does not support root link with inertia"**
 - Harmless — the simulation works correctly.

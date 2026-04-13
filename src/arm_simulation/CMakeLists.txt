@@ -54,6 +54,10 @@ install(PROGRAMS
   scripts/gesture_sequencer.py
   scripts/speech_to_gesture_coordinator.py
   scripts/audio_visual_feedback.py
+  scripts/asl_mapper.py
+  scripts/asl_body_postures.py
+  scripts/body_controller.py
+  scripts/humanoid_sign_coordinator.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

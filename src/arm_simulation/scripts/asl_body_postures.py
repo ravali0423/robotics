@@ -120,10 +120,10 @@ SIGN_POSTURES = {
     # ── numbers ─────────────────────────────────────────────
     '1': [_frame(RIGHT_HAND_1_POSE, 1.5)],
 
-    '2': [_frame(SIGNING_POSE, 1.5)],
-    '3': [_frame(SIGNING_POSE, 1.5)],
-    '4': [_frame(SIGNING_POSE, 1.5)],
-    '5': [_frame(SIGNING_POSE, 1.5)],
+    '2': [_frame(RIGHT_HAND_1_POSE, 1.5)],
+    '3': [_frame(RIGHT_HAND_1_POSE, 1.5)],
+    '4': [_frame(RIGHT_HAND_1_POSE, 1.5)],
+    '5': [_frame(RIGHT_HAND_1_POSE, 1.5)],
     '6': [_frame(SIGNING_POSE, 1.5)],
     '7': [_frame(SIGNING_POSE, 1.5)],
     '8': [_frame(SIGNING_POSE, 1.5)],

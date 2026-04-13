@@ -32,20 +32,33 @@
   <xacro:property name="thumb_r1" value="0.0075"/>
   <xacro:property name="thumb_r2" value="0.0064"/>
 
-  <!-- ─── Materials ──────────────────────────────────────────────────────── -->
-  <!-- Body -->
-  <material name="body_skin">  <color rgba="0.85 0.72 0.55 1.0"/> </material>
-  <material name="body_dark">  <color rgba="0.30 0.20 0.15 1.0"/> </material>
-  <material name="hair_color"> <color rgba="0.15 0.10 0.08 1.0"/> </material>
-  <material name="eye_white">  <color rgba="0.95 0.95 0.95 1.0"/> </material>
-  <material name="eye_iris">   <color rgba="0.10 0.30 0.60 1.0"/> </material>
-  <material name="mouth_red">  <color rgba="0.75 0.20 0.15 1.0"/> </material>
-  <!-- Hand skin (same as original) -->
-  <material name="skin_palm">    <color rgba="0.96 0.78 0.62 1.0"/> </material>
-  <material name="skin_finger">  <color rgba="0.93 0.74 0.58 1.0"/> </material>
-  <material name="skin_knuckle"> <color rgba="0.88 0.68 0.52 1.0"/> </material>
-  <material name="skin_tip">     <color rgba="0.97 0.80 0.66 1.0"/> </material>
-  <material name="skin_nail">    <color rgba="1.0  0.75 0.80 0.7"/> </material>
+  <!-- ─── Material colors as xacro properties ─────────────────────────── -->
+  <!-- RViz only applies color when <color> appears inside <visual><material>.
+       Define each RGBA here as a property so every visual can inline it. -->
+  <xacro:property name="c_body_skin"   value="0.85 0.72 0.55 1.0"/>
+  <xacro:property name="c_body_dark"   value="0.30 0.20 0.15 1.0"/>
+  <xacro:property name="c_hair_color"  value="0.15 0.10 0.08 1.0"/>
+  <xacro:property name="c_eye_white"   value="0.95 0.95 0.95 1.0"/>
+  <xacro:property name="c_eye_iris"    value="0.10 0.30 0.60 1.0"/>
+  <xacro:property name="c_mouth_red"   value="0.75 0.20 0.15 1.0"/>
+  <xacro:property name="c_skin_palm"   value="0.96 0.78 0.62 1.0"/>
+  <xacro:property name="c_skin_finger" value="0.93 0.74 0.58 1.0"/>
+  <xacro:property name="c_skin_knuckle" value="0.88 0.68 0.52 1.0"/>
+  <xacro:property name="c_skin_tip"    value="0.97 0.80 0.66 1.0"/>
+  <xacro:property name="c_skin_nail"   value="1.0  0.75 0.80 0.7"/>
+
+  <!-- ─── Material macros (inline color so RViz picks it up) ───────────── -->
+  <xacro:macro name="m_body_skin">   <material name="body_skin">  <color rgba="${c_body_skin}"/>   </material></xacro:macro>
+  <xacro:macro name="m_body_dark">   <material name="body_dark">  <color rgba="${c_body_dark}"/>   </material></xacro:macro>
+  <xacro:macro name="m_hair_color">  <material name="hair_color"> <color rgba="${c_hair_color}"/>  </material></xacro:macro>
+  <xacro:macro name="m_eye_white">   <material name="eye_white">  <color rgba="${c_eye_white}"/>   </material></xacro:macro>
+  <xacro:macro name="m_eye_iris">    <material name="eye_iris">   <color rgba="${c_eye_iris}"/>    </material></xacro:macro>
+  <xacro:macro name="m_mouth_red">   <material name="mouth_red">  <color rgba="${c_mouth_red}"/>   </material></xacro:macro>
+  <xacro:macro name="m_skin_palm">   <material name="skin_palm">    <color rgba="${c_skin_palm}"/>    </material></xacro:macro>
+  <xacro:macro name="m_skin_finger"> <material name="skin_finger">  <color rgba="${c_skin_finger}"/>  </material></xacro:macro>
+  <xacro:macro name="m_skin_knuckle"><material name="skin_knuckle"> <color rgba="${c_skin_knuckle}"/> </material></xacro:macro>
+  <xacro:macro name="m_skin_tip">    <material name="skin_tip">     <color rgba="${c_skin_tip}"/>     </material></xacro:macro>
+  <xacro:macro name="m_skin_nail">   <material name="skin_nail">    <color rgba="${c_skin_nail}"/>    </material></xacro:macro>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        FINGER MACRO  (identical logic to dual_robotic_hands.urdf.xacro)
@@ -54,9 +67,9 @@
 
     <link name="${prefix}_proximal">
       <visual><geometry><sphere radius="${finger_r0}"/></geometry>
-        <material name="skin_knuckle"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_knuckle/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <visual><geometry><cylinder radius="${finger_r1}" length="${proximal_length}"/></geometry>
-        <material name="skin_finger"/>
+        <xacro:m_skin_finger/>
         <origin xyz="${proximal_length/2} 0 0" rpy="0 1.5708 0"/></visual>
       <collision><geometry><box size="${proximal_length} ${finger_r1*2} ${finger_r1*2}"/></geometry>
         <origin xyz="${proximal_length/2} 0 0" rpy="0 0 0"/></collision>
@@ -67,9 +80,9 @@
 
     <link name="${prefix}_middle">
       <visual><geometry><sphere radius="${finger_r1*0.92}"/></geometry>
-        <material name="skin_knuckle"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_knuckle/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <visual><geometry><cylinder radius="${finger_r2}" length="${middle_length}"/></geometry>
-        <material name="skin_finger"/>
+        <xacro:m_skin_finger/>
         <origin xyz="${middle_length/2} 0 0" rpy="0 1.5708 0"/></visual>
       <collision><geometry><box size="${middle_length} ${finger_r2*2} ${finger_r2*2}"/></geometry>
         <origin xyz="${middle_length/2} 0 0" rpy="0 0 0"/></collision>
@@ -80,12 +93,12 @@
 
     <link name="${prefix}_distal">
       <visual><geometry><sphere radius="${finger_r2*0.90}"/></geometry>
-        <material name="skin_knuckle"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_knuckle/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <visual><geometry><cylinder radius="${finger_r3}" length="${distal_length}"/></geometry>
-        <material name="skin_finger"/>
+        <xacro:m_skin_finger/>
         <origin xyz="${distal_length/2} 0 0" rpy="0 1.5708 0"/></visual>
       <visual><geometry><sphere radius="${finger_r3*1.1}"/></geometry>
-        <material name="skin_tip"/>
+        <xacro:m_skin_tip/>
         <origin xyz="${distal_length} 0 0" rpy="0 0 0"/></visual>
       <collision><geometry><box size="${distal_length} ${finger_r3*2} ${finger_r3*2}"/></geometry>
         <origin xyz="${distal_length/2} 0 0" rpy="0 0 0"/></collision>
@@ -97,7 +110,7 @@
     <link name="${prefix}_nail">
       <visual>
         <geometry><box size="${distal_length*0.75} ${finger_r3*1.8} ${finger_r3*0.6}"/></geometry>
-        <material name="skin_nail"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_nail/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <inertial><mass value="0.001"/>
         <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
         <origin xyz="0 0 0" rpy="0 0 0"/></inertial>
@@ -134,9 +147,9 @@
 
     <link name="${prefix}_proximal">
       <visual><geometry><sphere radius="${thumb_r0}"/></geometry>
-        <material name="skin_knuckle"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_knuckle/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <visual><geometry><cylinder radius="${thumb_r1}" length="${thumb_proximal_length}"/></geometry>
-        <material name="skin_finger"/>
+        <xacro:m_skin_finger/>
         <origin xyz="${thumb_proximal_length/2} 0 0" rpy="0 1.5708 0"/></visual>
       <collision><geometry><box size="${thumb_proximal_length} ${thumb_r1*2} ${thumb_r1*2}"/></geometry>
         <origin xyz="${thumb_proximal_length/2} 0 0" rpy="0 0 0"/></collision>
@@ -147,12 +160,12 @@
 
     <link name="${prefix}_distal">
       <visual><geometry><sphere radius="${thumb_r1*0.90}"/></geometry>
-        <material name="skin_knuckle"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_knuckle/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <visual><geometry><cylinder radius="${thumb_r2}" length="${thumb_distal_length}"/></geometry>
-        <material name="skin_finger"/>
+        <xacro:m_skin_finger/>
         <origin xyz="${thumb_distal_length/2} 0 0" rpy="0 1.5708 0"/></visual>
       <visual><geometry><sphere radius="${thumb_r2*1.15}"/></geometry>
-        <material name="skin_tip"/>
+        <xacro:m_skin_tip/>
         <origin xyz="${thumb_distal_length} 0 0" rpy="0 0 0"/></visual>
       <collision><geometry><box size="${thumb_distal_length} ${thumb_r2*2} ${thumb_r2*2}"/></geometry>
         <origin xyz="${thumb_distal_length/2} 0 0" rpy="0 0 0"/></collision>
@@ -164,7 +177,7 @@
     <link name="${prefix}_nail">
       <visual>
         <geometry><box size="${thumb_distal_length*0.75} ${thumb_r2*2.0} ${thumb_r2*0.6}"/></geometry>
-        <material name="skin_nail"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_nail/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <inertial><mass value="0.001"/>
         <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/>
         <origin xyz="0 0 0" rpy="0 0 0"/></inertial>
@@ -198,7 +211,7 @@
 
     <link name="${side}_hand_base">
       <visual><geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
-        <material name="skin_palm"/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
+        <xacro:m_skin_palm/><origin xyz="0 0 0" rpy="0 0 0"/></visual>
       <collision><geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
         <origin xyz="0 0 0" rpy="0 0 0"/></collision>
       <inertial><mass value="0.5"/>
@@ -258,11 +271,11 @@
     <!-- Main trunk -->
     <visual><origin xyz="0 0 0.22" rpy="0 0 0"/>
       <geometry><cylinder radius="0.15" length="0.44"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <!-- Collar bone / chest highlight -->
     <visual><origin xyz="0 0 0.44" rpy="0 0 0"/>
       <geometry><box size="0.28 0.06 0.02"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 0.22" rpy="0 0 0"/>
       <geometry><cylinder radius="0.15" length="0.44"/></geometry></collision>
     <inertial><mass value="20.0"/>
@@ -289,7 +302,7 @@
   <link name="neck">
     <visual><origin xyz="0 0 0.05" rpy="0 0 0"/>
       <geometry><cylinder radius="0.045" length="0.10"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 0.05" rpy="0 0 0"/>
       <geometry><cylinder radius="0.045" length="0.10"/></geometry></collision>
     <inertial><mass value="0.5"/>
@@ -307,31 +320,31 @@
     <!-- Skull -->
     <visual><origin xyz="0 0 0.11" rpy="0 0 0"/>
       <geometry><sphere radius="0.11"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <!-- Hair cap (slightly larger sphere, darker) -->
     <visual><origin xyz="0 0 0.16" rpy="0 0 0"/>
       <geometry><sphere radius="0.095"/></geometry>
-      <material name="hair_color"/></visual>
+      <xacro:m_hair_color/></visual>
     <!-- Left eye white (robot faces +Y toward viewer) -->
     <visual><origin xyz="0.038 0.09 0.14" rpy="0 0 0"/>
       <geometry><sphere radius="0.018"/></geometry>
-      <material name="eye_white"/></visual>
+      <xacro:m_eye_white/></visual>
     <!-- Right eye white -->
     <visual><origin xyz="-0.038 0.09 0.14" rpy="0 0 0"/>
       <geometry><sphere radius="0.018"/></geometry>
-      <material name="eye_white"/></visual>
+      <xacro:m_eye_white/></visual>
     <!-- Left iris -->
     <visual><origin xyz="0.038 0.108 0.14" rpy="-1.5708 0 0"/>
       <geometry><cylinder radius="0.010" length="0.004"/></geometry>
-      <material name="eye_iris"/></visual>
+      <xacro:m_eye_iris/></visual>
     <!-- Right iris -->
     <visual><origin xyz="-0.038 0.108 0.14" rpy="-1.5708 0 0"/>
       <geometry><cylinder radius="0.010" length="0.004"/></geometry>
-      <material name="eye_iris"/></visual>
+      <xacro:m_eye_iris/></visual>
     <!-- Mouth -->
     <visual><origin xyz="0 0.107 0.085" rpy="0 0 0"/>
       <geometry><box size="0.052 0.004 0.010"/></geometry>
-      <material name="mouth_red"/></visual>
+      <xacro:m_mouth_red/></visual>
     <collision><origin xyz="0 0 0.11" rpy="0 0 0"/>
       <geometry><sphere radius="0.11"/></geometry></collision>
     <inertial><mass value="3.0"/>
@@ -369,11 +382,11 @@
     <!-- Shoulder ball -->
     <visual><origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><sphere radius="0.045"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <!-- Arm cylinder — extends -Z from shoulder -->
     <visual><origin xyz="0 0 -0.13" rpy="0 0 0"/>
       <geometry><cylinder radius="0.038" length="0.26"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.13" rpy="0 0 0"/>
       <geometry><cylinder radius="0.038" length="0.26"/></geometry></collision>
     <inertial><mass value="2.0"/>
@@ -404,12 +417,12 @@
     <!-- Elbow bump -->
     <visual><origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry><sphere radius="0.032"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <!-- Forearm cylinder -->
     <visual><origin xyz="0 0 -0.11" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.032" length="0.22"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.11" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.032" length="0.22"/></geometry></collision>
@@ -427,7 +440,7 @@
   <link name="left_wrist">
     <visual><origin xyz="0 0 -0.015" rpy="0 0 0"/>
       <geometry><box size="0.042 0.052 0.030"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.015" rpy="0 0 0">
       </origin>
       <geometry><box size="0.042 0.052 0.030"/></geometry></collision>
@@ -460,11 +473,11 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.045"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <visual><origin xyz="0 0 -0.13" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.038" length="0.26"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.13" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.038" length="0.26"/></geometry></collision>
@@ -495,11 +508,11 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.032"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <visual><origin xyz="0 0 -0.11" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.032" length="0.22"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.11" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.032" length="0.22"/></geometry></collision>
@@ -518,7 +531,7 @@
     <visual><origin xyz="0 0 -0.015" rpy="0 0 0">
       </origin>
       <geometry><box size="0.042 0.052 0.030"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <collision><origin xyz="0 0 -0.015" rpy="0 0 0">
       </origin>
       <geometry><box size="0.042 0.052 0.030"/></geometry></collision>
@@ -559,12 +572,12 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.048"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <!-- Thigh cylinder -->
     <visual><origin xyz="0 0 -0.14" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.048" length="0.28"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0 -0.14" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.048" length="0.28"/></geometry></collision>
@@ -582,12 +595,12 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.038"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <!-- Shin cylinder -->
     <visual><origin xyz="0 0 -0.145" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.036" length="0.29"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0 -0.145" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.036" length="0.29"/></geometry></collision>
@@ -604,7 +617,7 @@
     <visual><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
       <geometry><box size="0.09 0.10 0.06"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
       <geometry><box size="0.09 0.10 0.06"/></geometry></collision>
@@ -635,11 +648,11 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.048"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <visual><origin xyz="0 0 -0.14" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.048" length="0.28"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0 -0.14" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.048" length="0.28"/></geometry></collision>
@@ -656,11 +669,11 @@
     <visual><origin xyz="0 0 0" rpy="0 0 0">
       </origin>
       <geometry><sphere radius="0.038"/></geometry>
-      <material name="body_skin"/></visual>
+      <xacro:m_body_skin/></visual>
     <visual><origin xyz="0 0 -0.145" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.036" length="0.29"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0 -0.145" rpy="0 0 0">
       </origin>
       <geometry><cylinder radius="0.036" length="0.29"/></geometry></collision>
@@ -677,7 +690,7 @@
     <visual><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
       <geometry><box size="0.09 0.10 0.06"/></geometry>
-      <material name="body_dark"/></visual>
+      <xacro:m_body_dark/></visual>
     <collision><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
       <geometry><box size="0.09 0.10 0.06"/></geometry></collision>

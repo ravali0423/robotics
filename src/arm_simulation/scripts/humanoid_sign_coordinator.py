@@ -33,7 +33,10 @@ try:
 except Exception:
     pass
 
-from asl_body_postures import NEUTRAL_POSE, SIGN_POSTURES, HAND_SHAPE_OVERRIDES
+from asl_body_postures import (
+    NEUTRAL_POSE, SIGN_POSTURES, HAND_SHAPE_OVERRIDES,
+    resolve_two_hand_command,
+)
 
 
 class HumanoidSignCoordinator(Node):
@@ -67,6 +70,25 @@ class HumanoidSignCoordinator(Node):
     def _on_sign_command(self, msg: String):
         cmd = msg.data.strip().lower()
 
+        # Check for simultaneous two-hand sign (two-letter word or two tokens)
+        two_hand = resolve_two_hand_command(cmd)
+        if two_hand is not None:
+            _, _, frames, hand_overrides = two_hand
+            with self._lock:
+                if self._active:
+                    self._publish_status('busy')
+                    self.get_logger().info(
+                        f'Sign "{cmd}" ignored — already performing a sign.')
+                    return
+                self._active = True
+            t = threading.Thread(
+                target=self._perform_two_hand_sign,
+                args=(cmd, frames, hand_overrides),
+                daemon=True,
+            )
+            t.start()
+            return
+
         if cmd not in SIGN_POSTURES:
             self.get_logger().warning(
                 f'Unknown sign command: "{cmd}". '
@@ -87,6 +109,35 @@ class HumanoidSignCoordinator(Node):
     # ------------------------------------------------------------------ #
     # Sign execution (runs in daemon thread)
     # ------------------------------------------------------------------ #
+    def _perform_two_hand_sign(self, cmd: str, frames: list, hand_overrides: dict):
+        try:
+            self._publish_status('performing')
+            self.get_logger().info(
+                f'Performing two-hand sign: "{cmd}" '
+                f'(left={hand_overrides["left"]}, right={hand_overrides["right"]})'
+            )
+
+            self._publish_hand(hand_overrides['right'], hand_overrides['left'])
+            time.sleep(0.1)
+
+            for frame in frames:
+                self._publish_body(frame['joints'])
+                time.sleep(frame['duration'])
+
+            self._publish_body(NEUTRAL_POSE)
+            time.sleep(0.8)
+            self._publish_hand('neutral', 'neutral')
+            self._publish_status('complete')
+            self.get_logger().info(f'Two-hand sign complete: {cmd}')
+
+        except Exception as e:
+            self.get_logger().error(f'Error during two-hand sign "{cmd}": {e}')
+            self._publish_status('error')
+
+        finally:
+            with self._lock:
+                self._active = False
+
     def _perform_sign(self, cmd: str):
         try:
             self._publish_status('performing')

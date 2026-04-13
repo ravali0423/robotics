@@ -91,6 +91,41 @@ def _wrist_frame(angle, duration=0.5):
     }, duration)
 
 
+def get_two_hand_sign(left_shape: str, right_shape: str):
+    """
+    Return (frames, hand_overrides) for a simultaneous two-hand sign.
+    Both arms hold SIGNING_POSE while each hand shows a different shape.
+    """
+    frames = [_frame(SIGNING_POSE, 1.5)]
+    hand_overrides = {'right': right_shape, 'left': left_shape}
+    return frames, hand_overrides
+
+
+def resolve_two_hand_command(cmd: str):
+    """
+    Detect whether cmd should be executed as a simultaneous two-hand sign.
+
+    Supported patterns:
+      - Two-letter word  (e.g. "hi")   → left='h', right='i'
+      - Two space-separated tokens     → left=token[0], right=token[1]
+        Works for single letters, numbers, or known sign words.
+
+    Returns (left_shape, right_shape, frames, hand_overrides)
+    or None if the command does not match either pattern.
+    """
+    tokens = cmd.split()
+
+    if len(tokens) == 2:
+        left, right = tokens[0], tokens[1]
+    elif len(tokens) == 1 and len(cmd) == 2 and cmd.isalpha():
+        left, right = cmd[0], cmd[1]
+    else:
+        return None
+
+    frames, hand_overrides = get_two_hand_sign(left, right)
+    return left, right, frames, hand_overrides
+
+
 # ─────────────────────────────────────────────────────────────
 # Sign Definitions
 # ─────────────────────────────────────────────────────────────

@@ -3,22 +3,11 @@
 ASL body posture data library.
 Stateless module — no ROS dependencies.
 Defines body joint targets for each sign command.
-
-Body joints managed (10 total):
-    left_shoulder_pitch, right_shoulder_pitch
-    left_shoulder_roll,  right_shoulder_roll
-    left_elbow_pitch,    right_elbow_pitch
-    left_wrist_pitch,    right_wrist_pitch
-    neck_pitch,          neck_yaw
-
-Each posture is a dict mapping joint name -> target angle (radians).
-Missing keys default to 0.0 (neutral).
-
-Each sign entry in SIGN_POSTURES is a list of frames:
-    {'joints': {joint: angle, ...}, 'duration': float (seconds)}
 """
 
-# All 10 body joints at rest
+# ─────────────────────────────────────────────────────────────
+# Neutral Pose
+# ─────────────────────────────────────────────────────────────
 NEUTRAL_POSE = {
     'left_shoulder_pitch':  0.0,
     'left_shoulder_roll':   0.0,
@@ -32,7 +21,9 @@ NEUTRAL_POSE = {
     'neck_yaw':             0.0,
 }
 
-# Signing-ready position: both arms raised in front of the body
+# ─────────────────────────────────────────────────────────────
+# Default Signing Pose (both arms)
+# ─────────────────────────────────────────────────────────────
 SIGNING_POSE = {
     'left_shoulder_pitch':  0.25,
     'left_shoulder_roll':   0.05,
@@ -46,12 +37,36 @@ SIGNING_POSE = {
     'neck_yaw':             0.0,
 }
 
-# Helper: frame constructor
+# ─────────────────────────────────────────────────────────────
+# ✅ FINAL FIX: Right-hand-only ASL "1" pose (correct orientation)
+# ─────────────────────────────────────────────────────────────
+RIGHT_HAND_1_POSE = {
+    # LEFT arm → fully neutral (no movement at all)
+    'left_shoulder_pitch':  0.0,
+    'left_shoulder_roll':   0.0,
+    'left_elbow_pitch':     0.0,
+    'left_wrist_pitch':     0.0,
+
+    # RIGHT arm → rotated inward + forward
+    'right_shoulder_pitch': 0.60,   # more forward lift
+    'right_shoulder_roll': -0.60,   # strong inward rotation (KEY FIX)
+    'right_elbow_pitch':    1.35,   # bend forward correctly
+
+    # Wrist → face camera
+    'right_wrist_pitch':   -0.90,
+
+    # Head (optional realism)
+    'neck_pitch':           0.1,
+    'neck_yaw':             0.0,
+}
+
+# ─────────────────────────────────────────────────────────────
+# Helpers
+# ─────────────────────────────────────────────────────────────
 def _frame(joints, duration):
     return {'joints': joints, 'duration': duration}
 
 
-# Wrist oscillation base for ASL "10" (thumb wave)
 def _wrist_frame(angle, duration=0.5):
     return _frame({
         **SIGNING_POSE,
@@ -59,11 +74,14 @@ def _wrist_frame(angle, duration=0.5):
     }, duration)
 
 
+# ─────────────────────────────────────────────────────────────
+# Sign Definitions
+# ─────────────────────────────────────────────────────────────
 SIGN_POSTURES = {
-    # ── hello ──────────────────────────────────────────────────────────────
-    # Right hand rises to forehead level, sweeps outward, returns to neutral
+
+    # ── hello ────────────────────────────────────────────────
     'hello': [
-        _frame({                             # raise to forehead
+        _frame({
             'right_shoulder_pitch': 0.85,
             'right_shoulder_roll':  0.30,
             'right_elbow_pitch':    1.40,
@@ -73,9 +91,10 @@ SIGN_POSTURES = {
             'left_elbow_pitch':     0.0,
             'left_wrist_pitch':     0.0,
             'neck_pitch':           0.15,
-            'neck_yaw':             -0.15,  # slight turn toward signing hand
+            'neck_yaw':            -0.15,
         }, 1.0),
-        _frame({                             # sweep outward
+
+        _frame({
             'right_shoulder_pitch': 0.45,
             'right_shoulder_roll':  0.65,
             'right_elbow_pitch':    1.10,
@@ -87,11 +106,13 @@ SIGN_POSTURES = {
             'neck_pitch':           0.10,
             'neck_yaw':             0.0,
         }, 1.0),
-        _frame(NEUTRAL_POSE, 0.8),           # return to neutral
+
+        _frame(NEUTRAL_POSE, 0.8),
     ],
 
-    # ── numbers 1-9: one signing-ready frame each ─────────────────────────
-    '1': [_frame(SIGNING_POSE, 1.5)],
+    # ── numbers ─────────────────────────────────────────────
+    '1': [_frame(RIGHT_HAND_1_POSE, 1.5)],
+
     '2': [_frame(SIGNING_POSE, 1.5)],
     '3': [_frame(SIGNING_POSE, 1.5)],
     '4': [_frame(SIGNING_POSE, 1.5)],
@@ -101,7 +122,7 @@ SIGN_POSTURES = {
     '8': [_frame(SIGNING_POSE, 1.5)],
     '9': [_frame(SIGNING_POSE, 1.5)],
 
-    # ── 10: wrist oscillation (ASL "10" = thumb shake) ────────────────────
+    # ── 10 ─────────────────────────────────────────────────
     '10': [
         _wrist_frame( 0.20),
         _wrist_frame(-0.20),
@@ -110,10 +131,9 @@ SIGN_POSTURES = {
     ],
 }
 
-# Hand shape override table keyed by sign command.
-# Values: {'right': gesture_name, 'left': gesture_name}
-# gesture_name must be a key in asl_mapper.ASLMapper.asl_alphabet /
-# asl_numbers / asl_words, or 'neutral'.
+# ─────────────────────────────────────────────────────────────
+# Hand Shape Overrides
+# ─────────────────────────────────────────────────────────────
 HAND_SHAPE_OVERRIDES = {
     'hello': {'right': 'hello', 'left': 'neutral'},
     '1':     {'right': '1',     'left': 'neutral'},
@@ -125,5 +145,5 @@ HAND_SHAPE_OVERRIDES = {
     '7':     {'right': '7',     'left': 'neutral'},
     '8':     {'right': '8',     'left': 'neutral'},
     '9':     {'right': '9',     'left': 'neutral'},
-    '10':    {'right': 'y',     'left': 'neutral'},  # y = thumb+pinky
+    '10':    {'right': 'y',     'left': 'neutral'},
 }

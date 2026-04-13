@@ -211,7 +211,7 @@
     <joint name="${side}_hand_orient" type="fixed">
       <parent link="${side}_wrist"/>
       <child link="${side}_hand_base"/>
-      <origin xyz="0 0 -0.04" rpy="0 1.5708 ${orient_yaw}"/>
+      <origin xyz="0 0 -0.04" rpy="0 0 ${orient_yaw}"/>
     </joint>
 
     <xacro:thumb  prefix="${side}_thumb"  parent_link="${side}_hand_base"
@@ -536,8 +536,8 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        HANDS — attach to wrists via macro
        ═══════════════════════════════════════════════════════════════════════ -->
-  <xacro:hand_assembly side="left"  mirror="1"  orient_yaw="3.1416"/>
-  <xacro:hand_assembly side="right" mirror="-1" orient_yaw="0"/>
+    <xacro:hand_assembly side="left"  mirror="-1"  orient_yaw="1.5708"/>
+    <xacro:hand_assembly side="right" mirror="1" orient_yaw="1.5708"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        LEFT LEG  (all joints fixed — standing pose)

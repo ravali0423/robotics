@@ -53,7 +53,7 @@ robotics/
     │       ├── enhanced_hand_controller.py
     │       ├── dual_hand_coordinator.py
     │       ├── asl_mapper.py                 # ASL hand shape library
-    │       ├── asl_body_postures.py          # ASL body posture data (hello, 1–10)
+    │       ├── asl_body_postures.py          # ASL body posture data (hello, 1–10, dance moves)
     │       ├── body_controller.py            # Humanoid body joint controller
     │       ├── humanoid_sign_coordinator.py  # Sign language orchestrator
     │       ├── gesture_sequencer.py
@@ -376,7 +376,50 @@ ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "9"'
 ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "10"'
 ```
 
-**Supported signs:** `hello`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, `9`, `10`
+**Hello** — right arm raises to forehead and sweeps outward (already shown above)
+
+**Why** — alternating arm swing with head tilts (repeated rhythm):
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "why"'
+```
+
+**Alphabet A–Z** — right arm moves to signing position, right hand forms the ASL letter shape:
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "a"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "b"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "z"'
+```
+
+**Two-letter words / simultaneous two-hand signs** — both hands sign at the same time:
+```bash
+# Two-letter word (left hand = first letter, right hand = second)
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "hi"'
+
+# Or space-separated tokens
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "a b"'
+```
+
+**Supported signs:** `hello`, `why`, `a`–`z`, `1`–`10`
+
+**Dance moves** — full-body choreographed sequences:
+```bash
+# Stiff mechanical arm snaps with head turns
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "robot"'
+
+# Both arms shoot up and wave, jazz hands finish
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "celebrate"'
+
+# Alternating arm raises — friendly crowd wave
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "wave"'
+
+# Funky alternating arm sweeps + double pump
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "groove"'
+
+# Classic Saturday-Night-Fever alternating diagonal point
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "disco"'
+```
+
+**Supported dance commands:** `robot`, `celebrate`, `wave`, `groove`, `disco`
 
 #### Manual Body Control (Testing)
 

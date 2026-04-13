@@ -355,6 +355,392 @@ SIGN_POSTURES = {
         _wrist_frame( 0.20),
         _wrist_frame(-0.20),
     ],
+
+    # ─────────────────────────────────────────────────────────────
+    # Dance Moves
+    # ─────────────────────────────────────────────────────────────
+
+    # ── robot ────────────────────────────────────────────────────
+    # Stiff, mechanical alternating arm snaps with head turns.
+    'robot': [
+        # snap right arm forward (elbow bent up), head right
+        _frame({
+            'right_shoulder_pitch': 0.0,
+            'right_shoulder_roll':  1.5708,
+            'right_elbow_pitch':   -1.5708,
+            'right_wrist_pitch':    0.0,
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   0.0,
+            'left_elbow_pitch':     0.0,
+            'left_wrist_pitch':     0.0,
+            'neck_pitch': 0.0,
+            'neck_yaw':   0.5,
+        }, 0.35),
+        # snap left arm forward (elbow bent up), head left
+        _frame({
+            'right_shoulder_pitch': 0.0,
+            'right_shoulder_roll':  0.0,
+            'right_elbow_pitch':    0.0,
+            'right_wrist_pitch':    0.0,
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.5708,
+            'left_elbow_pitch':    -1.5708,
+            'left_wrist_pitch':     0.0,
+            'neck_pitch': 0.0,
+            'neck_yaw':  -0.5,
+        }, 0.35),
+        # both arms forward, elbows bent — T-rex pose
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':    -1.5708,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    1.5708,
+            'left_elbow_pitch':     -1.5708,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.0,
+            'neck_yaw':   0.0,
+        }, 0.35),
+        # arms snap down — pause
+        _frame(NEUTRAL_POSE, 0.25),
+        # right arm raised high, head right
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':   2.4,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':   0.4,
+        }, 0.35),
+        # left arm raised high, head left
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   0.0,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':  -0.2,
+            'left_shoulder_roll':    2.4,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':  -0.4,
+        }, 0.35),
+        # both arms raised — victory stance
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':   2.4,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':  -0.2,
+            'left_shoulder_roll':    2.4,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.15,
+            'neck_yaw':   0.0,
+        }, 0.4),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── celebrate ────────────────────────────────────────────────
+    # Both arms shoot up and wave excitedly.
+    'celebrate': [
+        # arms up, wrists tilted out
+        _frame({
+            'right_shoulder_pitch': -0.3,
+            'right_shoulder_roll':   2.7,
+            'right_elbow_pitch':     0.4,
+            'right_wrist_pitch':     0.4,
+            'left_shoulder_pitch':  -0.3,
+            'left_shoulder_roll':    2.7,
+            'left_elbow_pitch':      0.4,
+            'left_wrist_pitch':     -0.4,
+            'neck_pitch': -0.2,
+            'neck_yaw':   0.0,
+        }, 0.4),
+        # arms up, wrists tilted in (shake)
+        _frame({
+            'right_shoulder_pitch': -0.3,
+            'right_shoulder_roll':   2.5,
+            'right_elbow_pitch':     0.3,
+            'right_wrist_pitch':    -0.4,
+            'left_shoulder_pitch':  -0.3,
+            'left_shoulder_roll':    2.5,
+            'left_elbow_pitch':      0.3,
+            'left_wrist_pitch':      0.4,
+            'neck_pitch': -0.15,
+            'neck_yaw':   0.1,
+        }, 0.4),
+        # arms up, wrists out again
+        _frame({
+            'right_shoulder_pitch': -0.3,
+            'right_shoulder_roll':   2.7,
+            'right_elbow_pitch':     0.4,
+            'right_wrist_pitch':     0.4,
+            'left_shoulder_pitch':  -0.3,
+            'left_shoulder_roll':    2.7,
+            'left_elbow_pitch':      0.4,
+            'left_wrist_pitch':     -0.4,
+            'neck_pitch': -0.2,
+            'neck_yaw':  -0.1,
+        }, 0.4),
+        # arms spread wide to sides (jazz hands moment)
+        _frame({
+            'right_shoulder_pitch':  0.5,
+            'right_shoulder_roll':   1.8,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.3,
+            'left_shoulder_pitch':  -0.5,
+            'left_shoulder_roll':    1.8,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':     -0.3,
+            'neck_pitch': 0.0,
+            'neck_yaw':   0.0,
+        }, 0.5),
+        _frame(NEUTRAL_POSE, 0.6),
+    ],
+
+    # ── wave ─────────────────────────────────────────────────────
+    # Alternating arm raises — friendly crowd wave.
+    'wave': [
+        # right arm rises, left stays low
+        _frame({
+            'right_shoulder_pitch': -0.1,
+            'right_shoulder_roll':   2.1,
+            'right_elbow_pitch':     0.3,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.3,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05,
+            'neck_yaw':   0.2,
+        }, 0.5),
+        # both arms at mid height — transition
+        _frame({
+            'right_shoulder_pitch': 0.0,
+            'right_shoulder_roll':  1.4,
+            'right_elbow_pitch':    0.2,
+            'right_wrist_pitch':    0.0,
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.4,
+            'left_elbow_pitch':     0.2,
+            'left_wrist_pitch':     0.0,
+            'neck_pitch': 0.05,
+            'neck_yaw':   0.0,
+        }, 0.4),
+        # left arm rises, right comes down
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   0.3,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':  -0.1,
+            'left_shoulder_roll':    2.1,
+            'left_elbow_pitch':      0.3,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05,
+            'neck_yaw':  -0.2,
+        }, 0.5),
+        # both arms at mid height — transition
+        _frame({
+            'right_shoulder_pitch': 0.0,
+            'right_shoulder_roll':  1.4,
+            'right_elbow_pitch':    0.2,
+            'right_wrist_pitch':    0.0,
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.4,
+            'left_elbow_pitch':     0.2,
+            'left_wrist_pitch':     0.0,
+            'neck_pitch': 0.05,
+            'neck_yaw':   0.0,
+        }, 0.4),
+        # right arm rises again
+        _frame({
+            'right_shoulder_pitch': -0.1,
+            'right_shoulder_roll':   2.1,
+            'right_elbow_pitch':     0.3,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.3,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05,
+            'neck_yaw':   0.2,
+        }, 0.5),
+        _frame(NEUTRAL_POSE, 0.6),
+    ],
+
+    # ── groove ───────────────────────────────────────────────────
+    # Funky pumping rhythm — arms sweep forward and back alternately.
+    'groove': [
+        # right arm sweeps forward-up, left sweeps back-down
+        _frame({
+            'right_shoulder_pitch':  0.3,
+            'right_shoulder_roll':   2.0,
+            'right_elbow_pitch':    -0.5,
+            'right_wrist_pitch':     0.2,
+            'left_shoulder_pitch':  -0.3,
+            'left_shoulder_roll':    0.5,
+            'left_elbow_pitch':      0.4,
+            'left_wrist_pitch':     -0.2,
+            'neck_pitch': 0.1,
+            'neck_yaw':   0.3,
+        }, 0.4),
+        # left arm sweeps forward-up, right sweeps back-down
+        _frame({
+            'right_shoulder_pitch': -0.3,
+            'right_shoulder_roll':   0.5,
+            'right_elbow_pitch':     0.4,
+            'right_wrist_pitch':    -0.2,
+            'left_shoulder_pitch':   0.3,
+            'left_shoulder_roll':    2.0,
+            'left_elbow_pitch':     -0.5,
+            'left_wrist_pitch':      0.2,
+            'neck_pitch': 0.1,
+            'neck_yaw':  -0.3,
+        }, 0.4),
+        # both arms pump forward together
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.8,
+            'right_elbow_pitch':    -0.4,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    1.8,
+            'left_elbow_pitch':     -0.4,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.15,
+            'neck_yaw':   0.0,
+        }, 0.35),
+        # both arms pull back
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   0.8,
+            'right_elbow_pitch':     0.5,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.8,
+            'left_elbow_pitch':      0.5,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.05,
+            'neck_yaw':   0.0,
+        }, 0.35),
+        # repeat the alternating sweep
+        _frame({
+            'right_shoulder_pitch':  0.3,
+            'right_shoulder_roll':   2.0,
+            'right_elbow_pitch':    -0.5,
+            'right_wrist_pitch':     0.2,
+            'left_shoulder_pitch':  -0.3,
+            'left_shoulder_roll':    0.5,
+            'left_elbow_pitch':      0.4,
+            'left_wrist_pitch':     -0.2,
+            'neck_pitch': 0.1,
+            'neck_yaw':   0.3,
+        }, 0.4),
+        _frame({
+            'right_shoulder_pitch': -0.3,
+            'right_shoulder_roll':   0.5,
+            'right_elbow_pitch':     0.4,
+            'right_wrist_pitch':    -0.2,
+            'left_shoulder_pitch':   0.3,
+            'left_shoulder_roll':    2.0,
+            'left_elbow_pitch':     -0.5,
+            'left_wrist_pitch':      0.2,
+            'neck_pitch': 0.1,
+            'neck_yaw':  -0.3,
+        }, 0.4),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── disco ────────────────────────────────────────────────────
+    # Classic Saturday-Night-Fever alternating diagonal point.
+    'disco': [
+        # right arm points up-right diagonal, left arm points down-left
+        _frame({
+            'right_shoulder_pitch': -0.6,
+            'right_shoulder_roll':   2.3,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.6,
+            'left_shoulder_roll':    0.4,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':   0.4,
+        }, 0.45),
+        # arms cross through center
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    1.5708,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.0,
+            'neck_yaw':   0.0,
+        }, 0.3),
+        # left arm points up-left diagonal, right arm points down-right
+        _frame({
+            'right_shoulder_pitch':  0.6,
+            'right_shoulder_roll':   0.4,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':  -0.6,
+            'left_shoulder_roll':    2.3,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':  -0.4,
+        }, 0.45),
+        # arms cross through center
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    1.5708,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.0,
+            'neck_yaw':   0.0,
+        }, 0.3),
+        # right arm up-right again (repeat)
+        _frame({
+            'right_shoulder_pitch': -0.6,
+            'right_shoulder_roll':   2.3,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.6,
+            'left_shoulder_roll':    0.4,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':   0.4,
+        }, 0.45),
+        # left arm up-left again
+        _frame({
+            'right_shoulder_pitch':  0.6,
+            'right_shoulder_roll':   0.4,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':  -0.6,
+            'left_shoulder_roll':    2.3,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': -0.1,
+            'neck_yaw':  -0.4,
+        }, 0.45),
+        _frame(NEUTRAL_POSE, 0.6),
+    ],
 }
 
 # ─────────────────────────────────────────────────────────────
@@ -373,6 +759,13 @@ HAND_SHAPE_OVERRIDES = {
     '8':     {'right': '5',     'left': '3'},
     '9':     {'right': '5',     'left': '4'},
     '10':    {'right': '5',     'left': '5'},
+
+    # dance moves
+    'robot':     {'right': 'neutral', 'left': 'neutral'},
+    'celebrate': {'right': 'neutral', 'left': 'neutral'},
+    'wave':      {'right': 'neutral', 'left': 'neutral'},
+    'groove':    {'right': 'neutral', 'left': 'neutral'},
+    'disco':     {'right': 'neutral', 'left': 'neutral'},
 
     # alphabet
     'a':     {'right': 'a',     'left': 'neutral'},

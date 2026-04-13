@@ -9,14 +9,19 @@ Defines body joint targets for each sign command.
 # Neutral Pose
 # ─────────────────────────────────────────────────────────────
 NEUTRAL_POSE = {
+    # LEFT ARM
     'left_shoulder_pitch':  0.0,
-    'left_shoulder_roll':   0.0,
-    'left_elbow_pitch':     0.0,
-    'left_wrist_pitch':     0.0,
+    'left_shoulder_roll':   1.5708,
+    'left_elbow_pitch':     0,
+    'left_wrist_pitch':    0,
+
+    # RIGHT ARM
     'right_shoulder_pitch': 0.0,
-    'right_shoulder_roll':  0.0,
-    'right_elbow_pitch':    0.0,
-    'right_wrist_pitch':    0.0,
+    'right_shoulder_roll': 1.5708,
+    'right_elbow_pitch':    0,
+    'right_wrist_pitch':   0,
+
+    # HEAD
     'neck_pitch':           0.0,
     'neck_yaw':             0.0,
 }
@@ -57,11 +62,15 @@ RIGHT_HAND_1_POSE = {
     'left_elbow_pitch':    0.0,
     'left_wrist_pitch':    0.0,
 
-    # RIGHT arm — raised forward, palm toward camera
-    'right_shoulder_roll':  0.8,   # brings arm FORWARD toward camera (X axis, positive = toward Y)
-    'right_shoulder_pitch': 0.2,   # slight inward to center arm in front of body
-    'right_elbow_pitch':    1.0,   # bend elbow so forearm angles upward
-    'right_wrist_pitch':    0.5,   # tilt wrist so palm faces camera
+    # RIGHT arm geometry:
+    #   shoulder→elbow: straight down (-Z)  →  shoulder_pitch=0, shoulder_roll=0
+    #   elbow→wrist:    toward camera (+Y)  →  Rx(π/2) rotates -Z arm to +Y
+    #                   achieved by shoulder_roll = 1.5708 (90°)
+    #   palm:           facing camera       →  wrist_pitch=0 (palm already faces +Y after roll)
+    'right_shoulder_pitch': 0.0,     # upper arm straight down (no lateral swing)
+    'right_shoulder_roll':  1.5708,  # 90° → forearm points toward camera (+Y)
+    'right_elbow_pitch':    0.0,     # forearm stays pointing toward camera
+    'right_wrist_pitch':    0.0,     # palm faces camera naturally after the 90° roll
 
     'neck_pitch': 0.1,
     'neck_yaw':   0.0,

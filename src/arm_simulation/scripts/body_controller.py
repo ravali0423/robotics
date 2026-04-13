@@ -58,8 +58,8 @@ class BodyController(Node):
     def __init__(self):
         super().__init__('body_controller')
 
-        self._current  = {j: 0.0 for j in BODY_JOINTS}
-        self._target   = {j: 0.0 for j in BODY_JOINTS}
+        self._current  = {j: NEUTRAL_POSE.get(j, 0.0) for j in BODY_JOINTS}
+        self._target   = {j: NEUTRAL_POSE.get(j, 0.0) for j in BODY_JOINTS}
         self._status   = 'ready'
 
         self._joint_pub  = self.create_publisher(JointState, '/joint_states', 10)

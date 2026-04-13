@@ -658,6 +658,324 @@ SIGN_POSTURES = {
         _frame(NEUTRAL_POSE, 0.5),
     ],
 
+    # ─────────────────────────────────────────────────────────────
+    # Common Interaction Commands
+    # ─────────────────────────────────────────────────────────────
+
+    # ── bye ──────────────────────────────────────────────────────
+    # Right arm raised, hand waves side to side three times.
+    'bye': [
+        _frame({
+            'right_shoulder_pitch': 0.0,
+            'right_shoulder_roll':  2.2,
+            'right_elbow_pitch':    0.4,
+            'right_wrist_pitch':    0.0,
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   0.0,
+            'left_elbow_pitch':     0.0,
+            'left_wrist_pitch':     0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.15,
+        }, 0.55),
+        _frame({
+            'right_shoulder_pitch': 0.0, 'right_shoulder_roll': 2.2,
+            'right_elbow_pitch': 0.4,    'right_wrist_pitch': -0.45,
+            'left_shoulder_pitch': 0.0,  'left_shoulder_roll': 0.0,
+            'left_elbow_pitch': 0.0,     'left_wrist_pitch': 0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.1,
+        }, 0.25),
+        _frame({
+            'right_shoulder_pitch': 0.0, 'right_shoulder_roll': 2.2,
+            'right_elbow_pitch': 0.4,    'right_wrist_pitch':  0.45,
+            'left_shoulder_pitch': 0.0,  'left_shoulder_roll': 0.0,
+            'left_elbow_pitch': 0.0,     'left_wrist_pitch': 0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.1,
+        }, 0.25),
+        _frame({
+            'right_shoulder_pitch': 0.0, 'right_shoulder_roll': 2.2,
+            'right_elbow_pitch': 0.4,    'right_wrist_pitch': -0.45,
+            'left_shoulder_pitch': 0.0,  'left_shoulder_roll': 0.0,
+            'left_elbow_pitch': 0.0,     'left_wrist_pitch': 0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.1,
+        }, 0.25),
+        _frame({
+            'right_shoulder_pitch': 0.0, 'right_shoulder_roll': 2.2,
+            'right_elbow_pitch': 0.4,    'right_wrist_pitch':  0.45,
+            'left_shoulder_pitch': 0.0,  'left_shoulder_roll': 0.0,
+            'left_elbow_pitch': 0.0,     'left_wrist_pitch': 0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.1,
+        }, 0.25),
+        _frame({
+            'right_shoulder_pitch': 0.0, 'right_shoulder_roll': 2.2,
+            'right_elbow_pitch': 0.4,    'right_wrist_pitch': -0.45,
+            'left_shoulder_pitch': 0.0,  'left_shoulder_roll': 0.0,
+            'left_elbow_pitch': 0.0,     'left_wrist_pitch': 0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.1,
+        }, 0.25),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── welcome ──────────────────────────────────────────────────
+    # Both arms spread wide with a slight forward bow.
+    'welcome': [
+        _frame({
+            'right_shoulder_pitch':  0.5,
+            'right_shoulder_roll':   1.5,
+            'right_elbow_pitch':    -0.2,
+            'right_wrist_pitch':    -0.2,
+            'left_shoulder_pitch':  -0.5,
+            'left_shoulder_roll':    1.5,
+            'left_elbow_pitch':     -0.2,
+            'left_wrist_pitch':      0.2,
+            'neck_pitch': 0.05, 'neck_yaw': 0.0,
+        }, 1.1),
+        # slight bow
+        _frame({
+            'right_shoulder_pitch':  0.5,
+            'right_shoulder_roll':   1.5,
+            'right_elbow_pitch':    -0.2,
+            'right_wrist_pitch':    -0.2,
+            'left_shoulder_pitch':  -0.5,
+            'left_shoulder_roll':    1.5,
+            'left_elbow_pitch':     -0.2,
+            'left_wrist_pitch':      0.2,
+            'neck_pitch': 0.3, 'neck_yaw': 0.0,
+        }, 0.5),
+        _frame(NEUTRAL_POSE, 0.6),
+    ],
+
+    # ── please ───────────────────────────────────────────────────
+    # ASL please: flat open hand makes two circles over the chest.
+    'please': [
+        _frame({
+            'right_shoulder_pitch':   0.0,
+            'right_shoulder_roll':    1.1,
+            'right_elbow_pitch':      1.3,
+            'right_wrist_pitch':      0.0,
+            'left_shoulder_pitch':    0.0,
+            'left_shoulder_roll':     0.0,
+            'left_elbow_pitch':       0.0,
+            'left_wrist_pitch':       0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.45),
+        _frame({
+            'right_shoulder_pitch': -0.15, 'right_shoulder_roll': 1.2,
+            'right_elbow_pitch':     1.15,  'right_wrist_pitch':  0.1,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch':  0.15, 'right_shoulder_roll': 1.0,
+            'right_elbow_pitch':     1.4,   'right_wrist_pitch': -0.1,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch': -0.15, 'right_shoulder_roll': 1.2,
+            'right_elbow_pitch':     1.15,  'right_wrist_pitch':  0.1,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch':  0.15, 'right_shoulder_roll': 1.0,
+            'right_elbow_pitch':     1.4,   'right_wrist_pitch': -0.1,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── thanks ───────────────────────────────────────────────────
+    # ASL thank you: flat hand near chin, sweeps forward and down.
+    'thanks': [
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':   2.1,
+            'right_elbow_pitch':     0.9,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.65),
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':     0.2,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.0,
+        }, 0.5),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── yes ──────────────────────────────────────────────────────
+    # Head nods twice, arms in signing-ready position.
+    'yes': [
+        _frame({**SIGNING_POSE, 'neck_pitch':  0.4, 'neck_yaw': 0.0}, 0.28),
+        _frame({**SIGNING_POSE, 'neck_pitch':  0.05, 'neck_yaw': 0.0}, 0.22),
+        _frame({**SIGNING_POSE, 'neck_pitch':  0.4, 'neck_yaw': 0.0}, 0.28),
+        _frame({**SIGNING_POSE, 'neck_pitch':  0.05, 'neck_yaw': 0.0}, 0.22),
+        _frame(NEUTRAL_POSE, 0.4),
+    ],
+
+    # ── no ───────────────────────────────────────────────────────
+    # Head shakes twice, arms in signing-ready position.
+    'no': [
+        _frame({**SIGNING_POSE, 'neck_pitch': 0.0, 'neck_yaw':  0.4}, 0.28),
+        _frame({**SIGNING_POSE, 'neck_pitch': 0.0, 'neck_yaw': -0.4}, 0.28),
+        _frame({**SIGNING_POSE, 'neck_pitch': 0.0, 'neck_yaw':  0.4}, 0.28),
+        _frame({**SIGNING_POSE, 'neck_pitch': 0.0, 'neck_yaw': -0.4}, 0.28),
+        _frame(NEUTRAL_POSE, 0.4),
+    ],
+
+    # ── sorry ────────────────────────────────────────────────────
+    # ASL sorry: closed fist makes two circles over the chest.
+    'sorry': [
+        _frame({
+            'right_shoulder_pitch':   0.0,
+            'right_shoulder_roll':    1.1,
+            'right_elbow_pitch':      1.3,
+            'right_wrist_pitch':      0.0,
+            'left_shoulder_pitch':    0.0,
+            'left_shoulder_roll':     0.0,
+            'left_elbow_pitch':       0.0,
+            'left_wrist_pitch':       0.0,
+            'neck_pitch': 0.15, 'neck_yaw': 0.0,
+        }, 0.45),
+        _frame({
+            'right_shoulder_pitch': -0.15, 'right_shoulder_roll': 1.2,
+            'right_elbow_pitch':     1.15,  'right_wrist_pitch':  0.0,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.15, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch':  0.15, 'right_shoulder_roll': 1.0,
+            'right_elbow_pitch':     1.4,   'right_wrist_pitch':  0.0,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.15, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch': -0.15, 'right_shoulder_roll': 1.2,
+            'right_elbow_pitch':     1.15,  'right_wrist_pitch':  0.0,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.15, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame({
+            'right_shoulder_pitch':  0.15, 'right_shoulder_roll': 1.0,
+            'right_elbow_pitch':     1.4,   'right_wrist_pitch':  0.0,
+            'left_shoulder_pitch':   0.0,   'left_shoulder_roll': 0.0,
+            'left_elbow_pitch':      0.0,   'left_wrist_pitch':   0.0,
+            'neck_pitch': 0.15, 'neck_yaw': 0.0,
+        }, 0.28),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── come ─────────────────────────────────────────────────────
+    # Arm extends forward then beckons twice.
+    'come': [
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.2,
+        }, 0.5),
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':    -1.0,
+            'right_wrist_pitch':     0.3,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.2,
+        }, 0.35),
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':     0.0,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.2,
+        }, 0.3),
+        _frame({
+            'right_shoulder_pitch':  0.0,
+            'right_shoulder_roll':   1.5708,
+            'right_elbow_pitch':    -1.0,
+            'right_wrist_pitch':     0.3,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.2,
+        }, 0.35),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── stop ─────────────────────────────────────────────────────
+    # Right arm raised with palm facing out — halt signal.
+    'stop': [
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':   2.0,
+            'right_elbow_pitch':     0.2,
+            'right_wrist_pitch':    -0.5,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.0,
+        }, 1.2),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
+    # ── good ─────────────────────────────────────────────────────
+    # ASL good: flat hand near chin, sweeps forward and down.
+    'good': [
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':   2.0,
+            'right_elbow_pitch':     0.7,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.1, 'neck_yaw': 0.0,
+        }, 0.6),
+        _frame({
+            'right_shoulder_pitch':  0.1,
+            'right_shoulder_roll':   1.4,
+            'right_elbow_pitch':     0.3,
+            'right_wrist_pitch':     0.0,
+            'left_shoulder_pitch':   0.0,
+            'left_shoulder_roll':    0.0,
+            'left_elbow_pitch':      0.0,
+            'left_wrist_pitch':      0.0,
+            'neck_pitch': 0.05, 'neck_yaw': 0.0,
+        }, 0.5),
+        _frame(NEUTRAL_POSE, 0.5),
+    ],
+
     # ── disco ────────────────────────────────────────────────────
     # Classic Saturday-Night-Fever alternating diagonal point.
     'disco': [
@@ -759,6 +1077,18 @@ HAND_SHAPE_OVERRIDES = {
     '8':     {'right': '5',     'left': '3'},
     '9':     {'right': '5',     'left': '4'},
     '10':    {'right': '5',     'left': '5'},
+
+    # interaction commands
+    'bye':      {'right': 'hello',   'left': 'neutral'},  # open hand wave
+    'welcome':  {'right': 'b',       'left': 'b'},         # flat open hands
+    'please':   {'right': 'b',       'left': 'neutral'},   # flat hand on chest
+    'thanks':   {'right': 'b',       'left': 'neutral'},   # flat hand from chin
+    'yes':      {'right': 'a',       'left': 'neutral'},   # closed fist nod
+    'no':       {'right': 'neutral', 'left': 'neutral'},
+    'sorry':    {'right': 'a',       'left': 'neutral'},   # closed fist on chest
+    'come':     {'right': 'neutral', 'left': 'neutral'},   # open beckoning hand
+    'stop':     {'right': 'b',       'left': 'neutral'},   # flat palm out
+    'good':     {'right': 'b',       'left': 'neutral'},   # flat hand from chin
 
     # dance moves
     'robot':     {'right': 'neutral', 'left': 'neutral'},

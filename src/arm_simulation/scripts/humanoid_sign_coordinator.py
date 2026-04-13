@@ -62,7 +62,9 @@ class HumanoidSignCoordinator(Node):
 
         self.get_logger().info(
             'humanoid_sign_coordinator ready — supported commands: '
-            'hello, 1-10, robot, celebrate, wave, groove, disco')
+            'hello, why, a-z, 1-10 | '
+            'interactions: bye, welcome, please, thanks, yes, no, sorry, come, stop, good | '
+            'dance: robot, celebrate, wave, groove, disco')
 
     # ------------------------------------------------------------------ #
     # Incoming sign command

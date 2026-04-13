@@ -376,6 +376,34 @@ ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "9"'
 ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "10"'
 ```
 
+**Common interaction commands** — greetings, social responses, and directives:
+
+| Command | Description |
+|---------|-------------|
+| `bye` | Right arm raised, hand waves side to side three times |
+| `welcome` | Both arms spread wide with a slight forward bow |
+| `please` | Flat hand makes two circles over the chest |
+| `thanks` | Flat hand near chin sweeps forward and down |
+| `yes` | Head nods twice |
+| `no` | Head shakes twice |
+| `sorry` | Closed fist makes two circles over the chest |
+| `come` | Arm extends forward then beckons twice |
+| `stop` | Right arm raised with palm facing out — halt signal |
+| `good` | Flat hand near chin sweeps forward and down |
+
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "bye"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "welcome"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "please"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "thanks"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "yes"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "no"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "sorry"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "come"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "stop"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "good"'
+```
+
 **Hello** — right arm raises to forehead and sweeps outward (already shown above)
 
 **Why** — alternating arm swing with head tilts (repeated rhythm):
@@ -400,6 +428,8 @@ ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "a b"'
 ```
 
 **Supported signs:** `hello`, `why`, `a`–`z`, `1`–`10`
+
+**Supported interaction commands:** `bye`, `welcome`, `please`, `thanks`, `yes`, `no`, `sorry`, `come`, `stop`, `good`
 
 **Dance moves** — full-body choreographed sequences:
 ```bash

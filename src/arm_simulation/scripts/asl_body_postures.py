@@ -30,16 +30,17 @@ NEUTRAL_POSE = {
 # Default Signing Pose (both arms)
 # ─────────────────────────────────────────────────────────────
 SIGNING_POSE = {
-    'left_shoulder_pitch':  0.25,
-    'left_shoulder_roll':   0.05,
-    'left_elbow_pitch':     0.8,
+    'left_shoulder_pitch':  0.0,
+    'left_shoulder_roll':   1.5708,
+    'left_elbow_pitch':     0.0,
     'left_wrist_pitch':     0.0,
-    'right_shoulder_pitch': 0.30,
-    'right_shoulder_roll':  0.10,
-    'right_elbow_pitch':    1.0,
+    'right_shoulder_pitch': 0.0,     
+    'right_shoulder_roll':  1.5708,
+    'right_elbow_pitch':    0.0,
     'right_wrist_pitch':    0.0,
-    'neck_pitch':           0.1,
-    'neck_yaw':             0.0,
+
+    'neck_pitch': 0.1,
+    'neck_yaw':   0.0,
 }
 
 # ─────────────────────────────────────────────────────────────

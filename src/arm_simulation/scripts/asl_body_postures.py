@@ -98,32 +98,56 @@ SIGN_POSTURES = {
 
     # ── hello ────────────────────────────────────────────────
     'hello': [
-        _frame({
-            'right_shoulder_pitch': 0.85,
-            'right_shoulder_roll':  0.30,
-            'right_elbow_pitch':    1.40,
-            'right_wrist_pitch':    0.0,
-            'left_shoulder_pitch':  0.0,
-            'left_shoulder_roll':   0.0,
-            'left_elbow_pitch':     0.0,
-            'left_wrist_pitch':     0.0,
-            'neck_pitch':           0.15,
-            'neck_yaw':            -0.15,
-        }, 1.0),
 
+        # Step 1 — bring hand UP toward head (diagonal lift)
         _frame({
-            'right_shoulder_pitch': 0.45,
-            'right_shoulder_roll':  0.65,
-            'right_elbow_pitch':    1.10,
+            'right_shoulder_pitch': -0.5,   # 👈 pull inward toward head
+            'right_shoulder_roll':  1.4,    # 👈 strong forward
+            'right_elbow_pitch':    0.8,    # 👈 bend to bring hand closer
             'right_wrist_pitch':    0.0,
+
             'left_shoulder_pitch':  0.0,
             'left_shoulder_roll':   0.0,
             'left_elbow_pitch':     0.0,
             'left_wrist_pitch':     0.0,
-            'neck_pitch':           0.10,
+
+            'neck_pitch':           0.1,
+            'neck_yaw':            -0.2,
+        }, 1.2),
+
+        # Step 2 — wave outward
+        _frame({
+            'right_shoulder_pitch': -0.2,
+            'right_shoulder_roll':  1.2,
+            'right_elbow_pitch':    0.8,
+            'right_wrist_pitch':    0.0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   0.0,
+            'left_elbow_pitch':     0.0,
+            'left_wrist_pitch':     0.0,
+
+            'neck_pitch':           0.1,
             'neck_yaw':             0.0,
-        }, 1.0),
+        }, 0.6),
 
+        # Step 3 — wave back
+        _frame({
+            'right_shoulder_pitch': -0.6,
+            'right_shoulder_roll':  1.3,
+            'right_elbow_pitch':    0.8,
+            'right_wrist_pitch':    0.0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   0.0,
+            'left_elbow_pitch':     0.0,
+            'left_wrist_pitch':     0.0,
+
+            'neck_pitch':           0.1,
+            'neck_yaw':            -0.1,
+        }, 0.6),
+
+        # Step 4 — return
         _frame(NEUTRAL_POSE, 0.8),
     ],
 

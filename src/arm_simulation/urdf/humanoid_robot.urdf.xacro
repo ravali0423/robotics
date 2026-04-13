@@ -194,7 +194,7 @@
        mirror= 1 → left  (thumb at -Y, abduction +Z)
        mirror=-1 → right (thumb at +Y, abduction -Z)
        ═══════════════════════════════════════════════════════════════════════ -->
-  <xacro:macro name="hand_assembly" params="side mirror">
+  <xacro:macro name="hand_assembly" params="side mirror orient_yaw:=0">
 
     <link name="${side}_hand_base">
       <visual><geometry><box size="${hand_length} ${hand_width} ${hand_height}"/></geometry>
@@ -206,12 +206,12 @@
         <origin xyz="0 0 0" rpy="0 0 0"/></inertial>
     </link>
 
-    <!-- Attach hand to wrist — rpy preserved from dual_hands so hand controller
-         joint angles stay valid. Fingers point in hand's local +X. -->
+    <!-- Attach hand below wrist. rpy="0 1.5708 0" maps hand +X → wrist -Z
+         so fingers point downward (away from arm) in neutral pose. -->
     <joint name="${side}_hand_orient" type="fixed">
       <parent link="${side}_wrist"/>
       <child link="${side}_hand_base"/>
-      <origin xyz="0 0 -0.015" rpy="0 -1.5708 0"/>
+      <origin xyz="0 0 -0.04" rpy="0 1.5708 ${orient_yaw}"/>
     </joint>
 
     <xacro:thumb  prefix="${side}_thumb"  parent_link="${side}_hand_base"
@@ -312,25 +312,25 @@
     <visual><origin xyz="0 0 0.16" rpy="0 0 0"/>
       <geometry><sphere radius="0.095"/></geometry>
       <material name="hair_color"/></visual>
-    <!-- Left eye white -->
-    <visual><origin xyz="0.09 0.038 0.14" rpy="0 0 0"/>
+    <!-- Left eye white (robot faces +Y toward viewer) -->
+    <visual><origin xyz="0.038 0.09 0.14" rpy="0 0 0"/>
       <geometry><sphere radius="0.018"/></geometry>
       <material name="eye_white"/></visual>
     <!-- Right eye white -->
-    <visual><origin xyz="0.09 -0.038 0.14" rpy="0 0 0"/>
+    <visual><origin xyz="-0.038 0.09 0.14" rpy="0 0 0"/>
       <geometry><sphere radius="0.018"/></geometry>
       <material name="eye_white"/></visual>
     <!-- Left iris -->
-    <visual><origin xyz="0.108 0.038 0.14" rpy="0 1.5708 0"/>
+    <visual><origin xyz="0.038 0.108 0.14" rpy="-1.5708 0 0"/>
       <geometry><cylinder radius="0.010" length="0.004"/></geometry>
       <material name="eye_iris"/></visual>
     <!-- Right iris -->
-    <visual><origin xyz="0.108 -0.038 0.14" rpy="0 1.5708 0"/>
+    <visual><origin xyz="-0.038 0.108 0.14" rpy="-1.5708 0 0"/>
       <geometry><cylinder radius="0.010" length="0.004"/></geometry>
       <material name="eye_iris"/></visual>
     <!-- Mouth -->
-    <visual><origin xyz="0.107 0 0.085" rpy="0 1.5708 0"/>
-      <geometry><box size="0.004 0.052 0.010"/></geometry>
+    <visual><origin xyz="0 0.107 0.085" rpy="0 0 0"/>
+      <geometry><box size="0.052 0.004 0.010"/></geometry>
       <material name="mouth_red"/></visual>
     <collision><origin xyz="0 0 0.11" rpy="0 0 0"/>
       <geometry><sphere radius="0.11"/></geometry></collision>
@@ -536,8 +536,8 @@
   <!-- ═══════════════════════════════════════════════════════════════════════
        HANDS — attach to wrists via macro
        ═══════════════════════════════════════════════════════════════════════ -->
-  <xacro:hand_assembly side="left"  mirror="1"/>
-  <xacro:hand_assembly side="right" mirror="-1"/>
+  <xacro:hand_assembly side="left"  mirror="1"  orient_yaw="3.1416"/>
+  <xacro:hand_assembly side="right" mirror="-1" orient_yaw="0"/>
 
   <!-- ═══════════════════════════════════════════════════════════════════════
        LEFT LEG  (all joints fixed — standing pose)
@@ -601,16 +601,16 @@
   </joint>
 
   <link name="left_foot">
-    <visual><origin xyz="0.04 0 -0.03" rpy="0 0 0">
+    <visual><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
-      <geometry><box size="0.10 0.09 0.06"/></geometry>
+      <geometry><box size="0.09 0.10 0.06"/></geometry>
       <material name="body_dark"/></visual>
-    <collision><origin xyz="0.04 0 -0.03" rpy="0 0 0">
+    <collision><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
-      <geometry><box size="0.10 0.09 0.06"/></geometry></collision>
+      <geometry><box size="0.09 0.10 0.06"/></geometry></collision>
     <inertial><mass value="1.0"/>
       <inertia ixx="0.003" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.005"/>
-      <origin xyz="0.04 0 -0.03" rpy="0 0 0"/></inertial>
+      <origin xyz="0 0.04 -0.03" rpy="0 0 0"/></inertial>
   </link>
   <joint name="left_ankle_pitch" type="fixed">
     <parent link="left_shin"/><child link="left_foot"/>
@@ -674,16 +674,16 @@
   </joint>
 
   <link name="right_foot">
-    <visual><origin xyz="0.04 0 -0.03" rpy="0 0 0">
+    <visual><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
-      <geometry><box size="0.10 0.09 0.06"/></geometry>
+      <geometry><box size="0.09 0.10 0.06"/></geometry>
       <material name="body_dark"/></visual>
-    <collision><origin xyz="0.04 0 -0.03" rpy="0 0 0">
+    <collision><origin xyz="0 0.04 -0.03" rpy="0 0 0">
       </origin>
-      <geometry><box size="0.10 0.09 0.06"/></geometry></collision>
+      <geometry><box size="0.09 0.10 0.06"/></geometry></collision>
     <inertial><mass value="1.0"/>
       <inertia ixx="0.003" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.005"/>
-      <origin xyz="0.04 0 -0.03" rpy="0 0 0"/></inertial>
+      <origin xyz="0 0.04 -0.03" rpy="0 0 0"/></inertial>
   </link>
   <joint name="right_ankle_pitch" type="fixed">
     <parent link="right_shin"/><child link="right_foot"/>

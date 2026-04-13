@@ -38,6 +38,13 @@ from asl_body_postures import (
     resolve_two_hand_command,
 )
 
+# Meta-sequences: each key maps to an ordered list of existing sign commands.
+SEQUENCE_COMMANDS = {
+    'numbers':   [str(i) for i in range(1, 11)],
+    'alphabet':  [chr(c) for c in range(ord('a'), ord('z') + 1)],
+    'dance_all': ['robot', 'celebrate', 'wave', 'groove', 'disco'],
+}
+
 
 class HumanoidSignCoordinator(Node):
     def __init__(self):
@@ -64,7 +71,8 @@ class HumanoidSignCoordinator(Node):
             'humanoid_sign_coordinator ready — supported commands: '
             'hello, why, a-z, 1-10 | '
             'interactions: bye, welcome, please, thanks, yes, no, sorry, come, stop, good | '
-            'dance: robot, celebrate, wave, groove, disco')
+            'dance: robot, celebrate, wave, groove, disco | '
+            'sequences: numbers, alphabet, dance_all')
 
     # ------------------------------------------------------------------ #
     # Incoming sign command
@@ -86,6 +94,23 @@ class HumanoidSignCoordinator(Node):
             t = threading.Thread(
                 target=self._perform_two_hand_sign,
                 args=(cmd, frames, hand_overrides),
+                daemon=True,
+            )
+            t.start()
+            return
+
+        # Check for meta-sequences (numbers, alphabet, dance_all)
+        if cmd in SEQUENCE_COMMANDS:
+            with self._lock:
+                if self._active:
+                    self._publish_status('busy')
+                    self.get_logger().info(
+                        f'Sequence "{cmd}" ignored — already performing a sign.')
+                    return
+                self._active = True
+            t = threading.Thread(
+                target=self._perform_sequence,
+                args=(cmd, SEQUENCE_COMMANDS[cmd]),
                 daemon=True,
             )
             t.start()
@@ -172,6 +197,45 @@ class HumanoidSignCoordinator(Node):
 
         except Exception as e:
             self.get_logger().error(f'Error during sign "{cmd}": {e}')
+            self._publish_status('error')
+
+        finally:
+            with self._lock:
+                self._active = False
+
+    def _perform_sequence(self, name: str, commands: list):
+        """Execute a list of sign commands one after another."""
+        try:
+            self._publish_status('performing')
+            self.get_logger().info(
+                f'Performing sequence "{name}" — {len(commands)} signs')
+
+            for cmd in commands:
+                if cmd not in SIGN_POSTURES:
+                    self.get_logger().warning(
+                        f'Sequence "{name}": skipping unknown sign "{cmd}"')
+                    continue
+
+                self.get_logger().info(f'  [{name}] → {cmd}')
+                hand_shapes = HAND_SHAPE_OVERRIDES.get(
+                    cmd, {'right': 'neutral', 'left': 'neutral'})
+                self._publish_hand(hand_shapes['right'], hand_shapes['left'])
+                time.sleep(0.1)
+
+                for frame in SIGN_POSTURES[cmd]:
+                    self._publish_body(frame['joints'])
+                    time.sleep(frame['duration'])
+
+                self._publish_body(NEUTRAL_POSE)
+                time.sleep(0.5)
+                self._publish_hand('neutral', 'neutral')
+                time.sleep(0.15)
+
+            self._publish_status('complete')
+            self.get_logger().info(f'Sequence complete: {name}')
+
+        except Exception as e:
+            self.get_logger().error(f'Error during sequence "{name}": {e}')
             self._publish_status('error')
 
         finally:

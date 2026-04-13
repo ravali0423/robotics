@@ -431,6 +431,20 @@ ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "a b"'
 
 **Supported interaction commands:** `bye`, `welcome`, `please`, `thanks`, `yes`, `no`, `sorry`, `come`, `stop`, `good`
 
+**Sequence commands** — run a full set in one shot:
+
+| Command | What it does |
+|---------|-------------|
+| `numbers` | Signs 1 through 10 one by one |
+| `alphabet` | Signs a through z one by one |
+| `dance_all` | Runs all 5 dance moves back to back |
+
+```bash
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "numbers"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "alphabet"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "dance_all"'
+```
+
 **Dance moves** — full-body choreographed sequences:
 ```bash
 # Stiff mechanical arm snaps with head turns

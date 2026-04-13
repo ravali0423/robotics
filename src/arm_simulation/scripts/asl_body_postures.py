@@ -172,6 +172,142 @@ SIGN_POSTURES = {
         _frame(NEUTRAL_POSE, 0.8),
     ],
 
+    # ── boy ─────────────────────────────────────────────────
+    # ASL boy: grab brim of imaginary cap at forehead, release downward
+    'why': [
+
+        # Step 1 — brim-grab at forehead
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  -1.57,    # inward toward face
+            'right_elbow_pitch':    1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.57,
+            'left_elbow_pitch':     -1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           0.2,
+            'neck_yaw':             0.2,
+        }, 1.0),
+
+        _frame(NEUTRAL_POSE, 0.8),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  1.57,    # inward toward face
+            'right_elbow_pitch':    -1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   -1.57,
+            'left_elbow_pitch':     1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           -0.2,
+            'neck_yaw':             -0.2,
+        }, 1.0),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  -1.57,    # inward toward face
+            'right_elbow_pitch':    1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.57,
+            'left_elbow_pitch':     -1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           0.2,
+            'neck_yaw':             0.2,
+        }, 1.0),
+
+        _frame(NEUTRAL_POSE, 0.8),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  1.57,    # inward toward face
+            'right_elbow_pitch':    -1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   -1.57,
+            'left_elbow_pitch':     1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           -0.2,
+            'neck_yaw':             -0.2,
+        }, 1.0),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  -1.57,    # inward toward face
+            'right_elbow_pitch':    1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.57,
+            'left_elbow_pitch':     -1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           0.2,
+            'neck_yaw':             0.2,
+        }, 1.0),
+
+        _frame(NEUTRAL_POSE, 0.8),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  1.57,    # inward toward face
+            'right_elbow_pitch':    -1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   -1.57,
+            'left_elbow_pitch':     1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           -0.2,
+            'neck_yaw':             -0.2,
+        }, 1.0),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  -1.57,    # inward toward face
+            'right_elbow_pitch':    1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   1.57,
+            'left_elbow_pitch':     -1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           0.2,
+            'neck_yaw':             0.2,
+        }, 1.0),
+
+        _frame(NEUTRAL_POSE, 0.8),
+
+        _frame({
+            'right_shoulder_pitch': 0,  # arm raised toward head 
+            'right_shoulder_roll':  1.57,    # inward toward face
+            'right_elbow_pitch':    -1.57,   # forearm bent to reach forehead
+            'right_wrist_pitch':    0,
+
+            'left_shoulder_pitch':  0.0,
+            'left_shoulder_roll':   -1.57,
+            'left_elbow_pitch':     1.57,
+            'left_wrist_pitch':     0,
+
+            'neck_pitch':           -0.2,
+            'neck_yaw':             -0.2,
+        }, 1.0),
+
+        _frame(NEUTRAL_POSE, 0.8),
+    ],
+
     # ── alphabet ────────────────────────────────────────────
     'a': [_frame(RIGHT_HAND_1_POSE, 1.5)],
     'b': [_frame(RIGHT_HAND_1_POSE, 1.5)],
@@ -226,6 +362,7 @@ SIGN_POSTURES = {
 # ─────────────────────────────────────────────────────────────
 HAND_SHAPE_OVERRIDES = {
     'hello': {'right': 'hello', 'left': 'neutral'},
+    'boy':   {'right': 'boy',   'left': 'neutral'},
     '1':     {'right': '1',     'left': 'neutral'},
     '2':     {'right': '2',     'left': 'neutral'},
     '3':     {'right': '3',     'left': 'neutral'},

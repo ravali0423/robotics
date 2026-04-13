@@ -285,6 +285,13 @@ class EnhancedHandController(Node):
                 'ring_base_joint': 0.0, 'ring_proximal_joint': 0.0, 'ring_middle_joint': 0.0,
                 'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.0, 'pinky_middle_joint': 0.0
             },
+            'boy': {  # Brim-grab shape — fingers curled as if pinching a cap brim at forehead
+                'thumb_base_joint': -0.2, 'thumb_proximal_joint': 0.4,
+                'index_base_joint': 0.0, 'index_proximal_joint': 0.7, 'index_middle_joint': 0.6,
+                'middle_base_joint': 0.0, 'middle_proximal_joint': 0.7, 'middle_middle_joint': 0.6,
+                'ring_base_joint': 0.0, 'ring_proximal_joint': 0.7, 'ring_middle_joint': 0.6,
+                'pinky_base_joint': 0.0, 'pinky_proximal_joint': 0.7, 'pinky_middle_joint': 0.6
+            },
             'neutral': {  # Neutral position
                 'thumb_base_joint': -0.3, 'thumb_proximal_joint': 0.0,
                 'index_base_joint': 0.0, 'index_proximal_joint': 0.0, 'index_middle_joint': 0.0,

@@ -132,13 +132,15 @@ def resolve_two_hand_command(cmd: str):
 SIGN_POSTURES = {
 
     # ── hello ────────────────────────────────────────────────
+    # ASL hello: flat-hand salute at the forehead, sweep outward
     'hello': [
 
-        # Step 1 — bring hand UP toward head (diagonal lift)
+        # Step 1 — raise hand to forehead (salute start)
+        # shoulder_roll > π/2 lifts the arm above horizontal toward the head
         _frame({
-            'right_shoulder_pitch': -0.5,   # 👈 pull inward toward head
-            'right_shoulder_roll':  1.4,    # 👈 strong forward
-            'right_elbow_pitch':    0.8,    # 👈 bend to bring hand closer
+            'right_shoulder_pitch': -0.4,   # inward toward centerline / face
+            'right_shoulder_roll':  2.2,    # arm raised upward past horizontal
+            'right_elbow_pitch':    0.6,    # forearm bent so hand reaches forehead
             'right_wrist_pitch':    0.0,
 
             'left_shoulder_pitch':  0.0,
@@ -146,16 +148,16 @@ SIGN_POSTURES = {
             'left_elbow_pitch':     0.0,
             'left_wrist_pitch':     0.0,
 
-            'neck_pitch':           0.1,
-            'neck_yaw':            -0.2,
-        }, 1.2),
+            'neck_pitch':           0.15,
+            'neck_yaw':            -0.1,
+        }, 1.0),
 
-        # Step 2 — wave outward
+        # Step 2 — sweep hand outward away from forehead
         _frame({
-            'right_shoulder_pitch': -0.2,
-            'right_shoulder_roll':  1.2,
-            'right_elbow_pitch':    0.8,
-            'right_wrist_pitch':    0.0,
+            'right_shoulder_pitch':  0.3,   # sweep arm outward
+            'right_shoulder_roll':   2.0,   # arm stays raised
+            'right_elbow_pitch':     0.3,   # forearm extends as hand sweeps out
+            'right_wrist_pitch':     0.0,
 
             'left_shoulder_pitch':  0.0,
             'left_shoulder_roll':   0.0,
@@ -164,25 +166,9 @@ SIGN_POSTURES = {
 
             'neck_pitch':           0.1,
             'neck_yaw':             0.0,
-        }, 0.6),
+        }, 0.7),
 
-        # Step 3 — wave back
-        _frame({
-            'right_shoulder_pitch': -0.6,
-            'right_shoulder_roll':  1.3,
-            'right_elbow_pitch':    0.8,
-            'right_wrist_pitch':    0.0,
-
-            'left_shoulder_pitch':  0.0,
-            'left_shoulder_roll':   0.0,
-            'left_elbow_pitch':     0.0,
-            'left_wrist_pitch':     0.0,
-
-            'neck_pitch':           0.1,
-            'neck_yaw':            -0.1,
-        }, 0.6),
-
-        # Step 4 — return
+        # Step 3 — return to neutral
         _frame(NEUTRAL_POSE, 0.8),
     ],
 

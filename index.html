@@ -50,51 +50,57 @@
 
     <!-- Demo Videos -->
     <section>
-      <h2 class="text-xl font-semibold mb-1">Demos</h2>
-      <p class="text-sm text-gray-500 mb-4">Click any card to open the video in a new tab.</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <h2 class="text-xl font-semibold mb-4">Demos</h2>
 
-        <a href="demo/humanoid.png" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">🤖</div>
-          <div class="font-medium text-sm">Humanoid Robot</div>
-          <div class="text-xs text-gray-400 mt-1">Image · Full-body view</div>
-        </a>
+      <!-- Humanoid image -->
+      <div class="mb-6">
+        <p class="text-sm font-medium text-gray-600 mb-2">Humanoid Robot</p>
+        <img src="demo/humanoid.png" alt="Humanoid robot full-body view"
+             class="rounded-lg border border-gray-200 max-w-full" />
+      </div>
 
-        <a href="demo/numbers.mov" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">🔢</div>
-          <div class="font-medium text-sm">Numbers (1–10)</div>
-          <div class="text-xs text-gray-400 mt-1">Video · ASL number signs</div>
-        </a>
+      <!-- Videos -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-        <a href="demo/alphabets.mov" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">🔤</div>
-          <div class="font-medium text-sm">Alphabet (A–Z)</div>
-          <div class="text-xs text-gray-400 mt-1">Video · ASL letter signs</div>
-        </a>
+        <div>
+          <p class="text-sm font-medium text-gray-600 mb-2">Numbers (1–10)</p>
+          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
+            <source src="demo/numbers.mov" type="video/mp4" />
+            Your browser does not support this video.
+          </video>
+        </div>
 
-        <a href="demo/numbers%20%26%20alphabets.mov" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">🔢🔤</div>
-          <div class="font-medium text-sm">Numbers &amp; Alphabets</div>
-          <div class="text-xs text-gray-400 mt-1">Video · Combined sequence</div>
-        </a>
+        <div>
+          <p class="text-sm font-medium text-gray-600 mb-2">Alphabet (A–Z)</p>
+          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
+            <source src="demo/alphabets.mov" type="video/mp4" />
+            Your browser does not support this video.
+          </video>
+        </div>
 
-        <a href="demo/commands.mov" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">👋</div>
-          <div class="font-medium text-sm">Interaction Commands</div>
-          <div class="text-xs text-gray-400 mt-1">Video · hello, bye, yes, no…</div>
-        </a>
+        <div>
+          <p class="text-sm font-medium text-gray-600 mb-2">Numbers &amp; Alphabets</p>
+          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
+            <source src="demo/numbers%20%26%20alphabets.mov" type="video/mp4" />
+            Your browser does not support this video.
+          </video>
+        </div>
 
-        <a href="demo/dance_all.mov" target="_blank" rel="noopener"
-           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
-          <div class="text-2xl mb-2">🕺</div>
-          <div class="font-medium text-sm">Dance Moves</div>
-          <div class="text-xs text-gray-400 mt-1">Video · robot, celebrate, groove, disco…</div>
-        </a>
+        <div>
+          <p class="text-sm font-medium text-gray-600 mb-2">Interaction Commands</p>
+          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
+            <source src="demo/commands.mov" type="video/mp4" />
+            Your browser does not support this video.
+          </video>
+        </div>
+
+        <div class="sm:col-span-2">
+          <p class="text-sm font-medium text-gray-600 mb-2">Dance Moves</p>
+          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
+            <source src="demo/dance_all.mov" type="video/mp4" />
+            Your browser does not support this video.
+          </video>
+        </div>
 
       </div>
     </section>

@@ -3,203 +3,514 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Robotics Simulation Workspace</title>
+  <title>Robotics Simulation</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    .tab-btn.active { border-color: #111827; color: #111827; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    pre { tab-size: 2; }
+    video { background: #000; }
+  </style>
 </head>
-<body class="bg-white text-gray-800 font-sans">
+<body class="bg-gray-50 text-gray-800 font-sans antialiased">
 
-  <!-- Header -->
-  <header class="border-b border-gray-200 px-6 py-8 max-w-4xl mx-auto">
-    <h1 class="text-3xl font-semibold tracking-tight">Robotics Simulation Workspace</h1>
-    <p class="mt-2 text-gray-500 text-base">A ROS 2 Jazzy workspace with robotic hand simulations and an autonomous warehouse robot.</p>
-    <div class="mt-4 flex gap-4 text-sm">
-      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">ROS 2 Jazzy</span>
-      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">Python 3.10+</span>
-      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">Docker</span>
+  <!-- Hero -->
+  <div class="bg-white border-b border-gray-200">
+    <div class="max-w-5xl mx-auto px-6 py-14">
+      <div class="inline-flex items-center gap-2 text-xs font-medium text-gray-400 uppercase tracking-widest mb-4">
+        <span class="w-4 h-px bg-gray-300 inline-block"></span> ROS 2 Jazzy
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 leading-tight">
+        Robotics Simulation<br class="hidden sm:block" /> Workspace
+      </h1>
+      <p class="mt-4 text-lg text-gray-500 max-w-2xl">
+        Robotic hand simulations with American Sign Language gesture support — from individual finger control to a full humanoid interpreter.
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <span class="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">ROS 2 Jazzy</span>
+        <span class="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">Python 3.10+</span>
+        <span class="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">Docker</span>
+        <span class="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">Ubuntu 24.04</span>
+        <span class="text-xs font-medium bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">RViz2</span>
+      </div>
     </div>
-  </header>
+  </div>
 
-  <main class="max-w-4xl mx-auto px-6 py-10 space-y-14">
+  <!-- Tab Nav -->
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-6 flex gap-0">
+      <button onclick="switchTab('dual')"
+        id="tab-dual"
+        class="tab-btn active text-sm font-medium px-5 py-4 border-b-2 border-transparent text-gray-400 hover:text-gray-700 transition-colors">
+        Dual Hands
+      </button>
+      <button onclick="switchTab('humanoid')"
+        id="tab-humanoid"
+        class="tab-btn text-sm font-medium px-5 py-4 border-b-2 border-transparent text-gray-400 hover:text-gray-700 transition-colors">
+        Humanoid
+      </button>
+    </div>
+  </div>
 
-    <!-- Overview -->
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Packages</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="border border-gray-200 rounded-lg p-5">
-          <h3 class="font-semibold text-base mb-1">arm_simulation</h3>
-          <p class="text-sm text-gray-500">Robotic hand simulations with ASL gesture support, speech-to-gesture pipeline, and a full humanoid sign language interpreter.</p>
-          <ul class="mt-3 text-sm text-gray-600 space-y-1 list-disc list-inside">
-            <li>Single &amp; dual robotic hands</li>
-            <li>Humanoid sign language interpreter</li>
-            <li>Speech-to-gesture system</li>
-            <li>A–Z alphabet, 0–10 numbers, dance moves</li>
-          </ul>
+  <main class="max-w-5xl mx-auto px-6 py-12">
+
+    <!-- ======================== DUAL HANDS TAB ======================== -->
+    <div id="content-dual" class="tab-content active space-y-12">
+
+      <!-- Overview -->
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">Dual Robotic Hands</h2>
+        <p class="text-gray-500 leading-relaxed max-w-3xl">
+          Two 5-finger robotic hands rendered side by side in RViz2. Supports combined finger counting from 0–10 (split automatically across both hands), two-character word spelling, and independent per-hand ASL letter and gesture control.
+        </p>
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🤲</div>
+            <div class="text-sm font-semibold text-gray-800">14 joints per hand</div>
+            <div class="text-xs text-gray-400 mt-1">Full finger articulation on each hand</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🔢</div>
+            <div class="text-sm font-semibold text-gray-800">0–10 finger count</div>
+            <div class="text-xs text-gray-400 mt-1">Automatically splits across both hands</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🔤</div>
+            <div class="text-sm font-semibold text-gray-800">A–Z ASL gestures</div>
+            <div class="text-xs text-gray-400 mt-1">Independent or synchronized letter shapes</div>
+          </div>
         </div>
-        <div class="border border-gray-200 rounded-lg p-5">
-          <h3 class="font-semibold text-base mb-1">warehouse_robot</h3>
-          <p class="text-sm text-gray-500">Autonomous warehouse delivery robot with web joystick control, waypoint navigation, and mission logging.</p>
-          <ul class="mt-3 text-sm text-gray-600 space-y-1 list-disc list-inside">
-            <li>Web joystick UI (browser-based)</li>
-            <li>Autonomous waypoint navigation</li>
-            <li>WASD terminal control</li>
-            <li>Mission log management</li>
-          </ul>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Demo Videos -->
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Demos</h2>
+      <!-- Setup -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Setup</h3>
+        <div class="space-y-6">
 
-      <!-- Humanoid image -->
-      <div class="mb-6">
-        <p class="text-sm font-medium text-gray-600 mb-2">Humanoid Robot</p>
-        <img src="demo/humanoid.png" alt="Humanoid robot full-body view"
-             class="rounded-lg border border-gray-200 max-w-full" />
-      </div>
+          <!-- Docker -->
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-base">🐳</div>
+              <div>
+                <div class="text-sm font-semibold text-gray-800">Docker — Mac &amp; Windows</div>
+                <div class="text-xs text-gray-400">Recommended. Bundles ROS 2 Jazzy + VNC server.</div>
+              </div>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Step 1 — Build the image</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>docker build -t arm-sim .</code></pre>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Step 2 — Run the container</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code># Mac
+docker run -it --name arm-sim -p 5900:5900 arm-sim
 
-      <!-- Videos -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+# Windows
+docker run -it --name arm-sim -p 5900:5900 --security-opt seccomp=unconfined arm-sim</code></pre>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Step 3 — Connect via VNC</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code># Mac — open VNC Viewer, connect to:
+localhost:5900
 
-        <div>
-          <p class="text-sm font-medium text-gray-600 mb-2">Numbers (1–10)</p>
-          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
-            <source src="demo/numbers.mov" type="video/mp4" />
-            Your browser does not support this video.
-          </video>
-        </div>
+# Windows PowerShell
+& "C:\Program Files\RealVNC\VNC Viewer\vncviewer.exe" localhost:5900</code></pre>
+                <p class="text-xs text-gray-400 mt-2">Leave the password blank. Use <strong>Scale to fit</strong> in VNC Viewer to resize the desktop.</p>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Container management</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>docker stop arm-sim              # stop
+docker start -ai arm-sim        # restart &amp; attach
+docker exec -it arm-sim bash    # open second terminal
+docker rm arm-sim               # remove container (keeps image)
 
-        <div>
-          <p class="text-sm font-medium text-gray-600 mb-2">Alphabet (A–Z)</p>
-          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
-            <source src="demo/alphabets.mov" type="video/mp4" />
-            Your browser does not support this video.
-          </video>
-        </div>
+# Rebuild after code changes
+docker rm -f arm-sim &amp;&amp; docker build -t arm-sim . &amp;&amp; docker run -it --name arm-sim -p 5900:5900 arm-sim</code></pre>
+              </div>
+            </div>
+          </div>
 
-        <div>
-          <p class="text-sm font-medium text-gray-600 mb-2">Numbers &amp; Alphabets</p>
-          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
-            <source src="demo/numbers%20%26%20alphabets.mov" type="video/mp4" />
-            Your browser does not support this video.
-          </video>
-        </div>
+          <!-- Native -->
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-base">🐧</div>
+              <div>
+                <div class="text-sm font-semibold text-gray-800">Native — Linux (Ubuntu 24.04)</div>
+                <div class="text-xs text-gray-400">ROS 2 Jazzy must be installed.</div>
+              </div>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+              <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>sudo apt install \
+  ros-jazzy-robot-state-publisher \
+  ros-jazzy-joint-state-publisher \
+  ros-jazzy-joint-state-publisher-gui \
+  ros-jazzy-rviz2 \
+  ros-jazzy-xacro
 
-        <div>
-          <p class="text-sm font-medium text-gray-600 mb-2">Interaction Commands</p>
-          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
-            <source src="demo/commands.mov" type="video/mp4" />
-            Your browser does not support this video.
-          </video>
-        </div>
-
-        <div class="sm:col-span-2">
-          <p class="text-sm font-medium text-gray-600 mb-2">Dance Moves</p>
-          <video controls preload="none" class="w-full rounded-lg border border-gray-200 bg-black">
-            <source src="demo/dance_all.mov" type="video/mp4" />
-            Your browser does not support this video.
-          </video>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Setup -->
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Setup</h2>
-
-      <div class="space-y-6">
-
-        <!-- Docker -->
-        <div>
-          <h3 class="font-semibold text-base mb-2">Docker (Mac &amp; Windows)</h3>
-          <p class="text-sm text-gray-500 mb-3">The Docker image bundles ROS 2 Jazzy and a VNC server so you can view RViz2 from any platform.</p>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm overflow-x-auto text-gray-700"><code>docker build -t arm-sim .
-docker run -it --name arm-sim -p 5900:5900 arm-sim</code></pre>
-          <p class="text-sm text-gray-500 mt-2">Then connect with <a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank" class="underline">VNC Viewer</a> to <code class="bg-gray-100 px-1 rounded text-xs">localhost:5900</code>.</p>
-        </div>
-
-        <!-- Native -->
-        <div>
-          <h3 class="font-semibold text-base mb-2">Native (Linux)</h3>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm overflow-x-auto text-gray-700"><code>rosdep install --from-paths src --ignore-src -r -y
+rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash</code></pre>
+            </div>
+          </div>
+
         </div>
+      </section>
 
-        <!-- Requirements -->
-        <div>
-          <h3 class="font-semibold text-base mb-2">Requirements</h3>
-          <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
-            <li>Ubuntu 24.04 LTS (native) or Docker</li>
-            <li>ROS 2 Jazzy</li>
-            <li>Python 3.10+</li>
-            <li><code class="bg-gray-100 px-1 rounded text-xs">colcon</code>, <code class="bg-gray-100 px-1 rounded text-xs">rosdep</code></li>
-          </ul>
+      <!-- Launch & Commands -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Launch &amp; Commands</h3>
+        <div class="space-y-5">
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Launch</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 launch arm_simulation dual_hands.launch.py</code></pre>
+            <p class="text-xs text-gray-400 mt-3">Open a second terminal in the container for sending commands:</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 mt-2 overflow-x-auto"><code>docker exec -it arm-sim bash
+source install/setup.bash</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Combined finger count (0–10)</p>
+            <p class="text-xs text-gray-500 mb-2">Automatically splits across both hands — e.g. 8 → left=5, right=3.</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 0}" --once   # fists
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 5}" --once   # one hand open
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 8}" --once   # left=5, right=3
+ros2 topic pub /finger_count std_msgs/msg/Int32 "{data: 10}" --once  # both hands open</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Two-character word spelling</p>
+            <p class="text-xs text-gray-500 mb-2">Right hand = first character, left hand = second.</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub /letter_command std_msgs/msg/String "{data: hi}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: go}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: it}" --once</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Single letter — both hands</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub /letter_command std_msgs/msg/String "{data: a}" --once
+ros2 topic pub /letter_command std_msgs/msg/String "{data: z}" --once</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Independent per-hand control</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code># Gestures
+ros2 topic pub /left/gesture_command std_msgs/msg/String "{data: v}" --once
+ros2 topic pub /right/gesture_command std_msgs/msg/String "{data: a}" --once
+
+# ASL letters
+ros2 topic pub /left/letter_command std_msgs/msg/String "{data: l}" --once
+ros2 topic pub /right/letter_command std_msgs/msg/String "{data: r}" --once
+
+# Finger count
+ros2 topic pub /left/finger_count std_msgs/msg/Int32 "{data: 3}" --once
+ros2 topic pub /right/finger_count std_msgs/msg/Int32 "{data: 5}" --once</code></pre>
+          </div>
+
         </div>
+      </section>
 
-      </div>
-    </section>
+      <!-- Videos -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Demo Videos</h3>
+        <div class="space-y-6">
 
-    <!-- Arm Simulation -->
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Arm Simulation</h2>
-      <div class="space-y-5 text-sm text-gray-700">
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 pt-5 pb-3">
+              <p class="text-sm font-semibold text-gray-800">Numbers (1–10)</p>
+              <p class="text-xs text-gray-400 mt-0.5">Combined finger count from 1 to 10 split across both hands</p>
+            </div>
+            <video controls preload="none" class="w-full">
+              <source src="demo/numbers.mov" type="video/mp4" />
+              Your browser does not support this video.
+            </video>
+          </div>
 
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Single Hand</h3>
-          <p class="text-gray-500 mb-2">5-finger robotic hand with ASL gestures and real-time finger counting.</p>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation robotic_hand.launch.py</code></pre>
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 pt-5 pb-3">
+              <p class="text-sm font-semibold text-gray-800">Alphabet (A–Z)</p>
+              <p class="text-xs text-gray-400 mt-0.5">Full ASL letter sequence across both hands</p>
+            </div>
+            <video controls preload="none" class="w-full">
+              <source src="demo/alphabets.mov" type="video/mp4" />
+              Your browser does not support this video.
+            </video>
+          </div>
+
         </div>
+      </section>
 
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Dual Hands</h3>
-          <p class="text-gray-500 mb-2">Two hands side by side. Supports combined finger counting (0–10) and two-character word spelling.</p>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation dual_hands.launch.py</code></pre>
+    </div>
+    <!-- end dual tab -->
+
+
+    <!-- ======================== HUMANOID TAB ======================== -->
+    <div id="content-humanoid" class="tab-content space-y-12">
+
+      <!-- Overview -->
+      <section>
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">Humanoid Sign Language Interpreter</h2>
+        <p class="text-gray-500 leading-relaxed max-w-3xl">
+          A full humanoid robot (~1.5 m tall) that performs American Sign Language signs with coordinated arm, hand, and head motion. Send a single <code class="bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded text-sm">/sign_command</code> and the entire body animates — arms raise to the correct position, fingers form the right shape, and the head follows, all simultaneously.
+        </p>
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🦾</div>
+            <div class="text-sm font-semibold text-gray-800">38 joints total</div>
+            <div class="text-xs text-gray-400 mt-1">10 body + 14 per hand, merged by ROS</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🤟</div>
+            <div class="text-sm font-semibold text-gray-800">A–Z, 1–10, commands</div>
+            <div class="text-xs text-gray-400 mt-1">Full alphabet, numbers, and social phrases</div>
+          </div>
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="text-2xl mb-2">🕺</div>
+            <div class="text-sm font-semibold text-gray-800">5 dance routines</div>
+            <div class="text-xs text-gray-400 mt-1">Full-body choreographed sequences</div>
+          </div>
         </div>
+      </section>
 
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Humanoid Sign Language Interpreter</h3>
-          <p class="text-gray-500 mb-2">Full humanoid (~1.5 m tall). Send a single <code class="bg-gray-100 px-1 rounded">/sign_command</code> and the body animates — arms, fingers, and head simultaneously.</p>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation humanoid_robot.launch.py
-# Then in a second terminal:
-ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "hello"'
-ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "dance_all"'</code></pre>
-          <p class="text-gray-500 mt-2">Supported: <code class="bg-gray-100 px-1 rounded text-xs">hello</code>, <code class="bg-gray-100 px-1 rounded text-xs">a</code>–<code class="bg-gray-100 px-1 rounded text-xs">z</code>, <code class="bg-gray-100 px-1 rounded text-xs">1</code>–<code class="bg-gray-100 px-1 rounded text-xs">10</code>, <code class="bg-gray-100 px-1 rounded text-xs">bye</code>, <code class="bg-gray-100 px-1 rounded text-xs">yes</code>, <code class="bg-gray-100 px-1 rounded text-xs">no</code>, <code class="bg-gray-100 px-1 rounded text-xs">please</code>, <code class="bg-gray-100 px-1 rounded text-xs">thanks</code>, <code class="bg-gray-100 px-1 rounded text-xs">robot</code>, <code class="bg-gray-100 px-1 rounded text-xs">disco</code>, <code class="bg-gray-100 px-1 rounded text-xs">groove</code>, and more.</p>
+      <!-- Preview image -->
+      <section>
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div class="px-6 pt-5 pb-3">
+            <p class="text-sm font-semibold text-gray-800">Humanoid Robot — Full Body View</p>
+            <p class="text-xs text-gray-400 mt-0.5">Rendered in RViz2 with all 38 joints active</p>
+          </div>
+          <img src="demo/humanoid.png" alt="Humanoid robot full-body view in RViz2" class="w-full" />
         </div>
+      </section>
 
-        <div>
-          <h3 class="font-semibold text-gray-900 mb-1">Speech-to-Gesture</h3>
-          <p class="text-gray-500 mb-2">Translates spoken words into ASL gestures in real time. Works in text-only mode without a microphone.</p>
-          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation speech_to_gesture.launch.py
-# Text mode:
-ros2 topic pub /text_to_sequence std_msgs/msg/String '{data: "cat"}' --once</code></pre>
+      <!-- System architecture -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">System Architecture</h3>
+        <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Node</th>
+                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Script</th>
+                <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide hidden sm:table-cell">Role</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 text-gray-700">
+              <tr><td class="px-5 py-3 font-medium">Sign Coordinator</td><td class="px-5 py-3 text-gray-500 font-mono text-xs">humanoid_sign_coordinator.py</td><td class="px-5 py-3 text-gray-500 hidden sm:table-cell">Receives /sign_command, sequences body + hand</td></tr>
+              <tr><td class="px-5 py-3 font-medium">Body Controller</td><td class="px-5 py-3 text-gray-500 font-mono text-xs">body_controller.py</td><td class="px-5 py-3 text-gray-500 hidden sm:table-cell">Drives 10 body joints at 10 Hz with interpolation</td></tr>
+              <tr><td class="px-5 py-3 font-medium">Left Hand</td><td class="px-5 py-3 text-gray-500 font-mono text-xs">enhanced_hand_controller.py</td><td class="px-5 py-3 text-gray-500 hidden sm:table-cell">Controls 14 left finger joints</td></tr>
+              <tr><td class="px-5 py-3 font-medium">Right Hand</td><td class="px-5 py-3 text-gray-500 font-mono text-xs">enhanced_hand_controller.py</td><td class="px-5 py-3 text-gray-500 hidden sm:table-cell">Controls 14 right finger joints</td></tr>
+              <tr><td class="px-5 py-3 font-medium">Dual Hand Coord.</td><td class="px-5 py-3 text-gray-500 font-mono text-xs">dual_hand_coordinator.py</td><td class="px-5 py-3 text-gray-500 hidden sm:table-cell">Routes commands to left/right controllers</td></tr>
+            </tbody>
+          </table>
         </div>
+      </section>
 
-      </div>
-    </section>
+      <!-- Setup -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Setup</h3>
+        <div class="space-y-6">
 
-    <!-- Warehouse Robot -->
-    <section>
-      <h2 class="text-xl font-semibold mb-4">Warehouse Robot</h2>
-      <p class="text-sm text-gray-500 mb-4">Autonomous delivery robot with a browser-based joystick, waypoint navigation, and mission logging.</p>
-      <div class="space-y-4 text-sm text-gray-700">
-        <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code># Terminal 1 — Gazebo simulation
-ros2 launch warehouse_robot warehouse_with_joystick.launch.py
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center text-base">🐳</div>
+              <div>
+                <div class="text-sm font-semibold text-gray-800">Docker — Mac &amp; Windows</div>
+                <div class="text-xs text-gray-400">Recommended. Bundles ROS 2 Jazzy + VNC server.</div>
+              </div>
+            </div>
+            <div class="px-6 py-5 space-y-4">
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Build &amp; run</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>docker build -t arm-sim .
+docker run -it --name arm-sim -p 5900:5900 arm-sim</code></pre>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Connect with VNC Viewer → <span class="normal-case font-normal">localhost:5900</span></p>
+                <p class="text-xs text-gray-400">Leave password blank. Run any launch command and the RViz2 window appears in VNC Viewer.</p>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Rebuild after code changes</p>
+                <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>docker rm -f arm-sim &amp;&amp; docker build -t arm-sim . &amp;&amp; docker run -it --name arm-sim -p 5900:5900 arm-sim</code></pre>
+              </div>
+            </div>
+          </div>
 
-# Terminal 2 — web joystick
-python3 src/warehouse_robot/scripts/web_joystick_controller.py
-# Open http://localhost:8080/joystick.html</code></pre>
-        <p class="text-gray-500">Autonomous navigation commands: <code class="bg-gray-100 px-1 rounded text-xs">pickup</code>, <code class="bg-gray-100 px-1 rounded text-xs">deliver</code>, <code class="bg-gray-100 px-1 rounded text-xs">return</code>, <code class="bg-gray-100 px-1 rounded text-xs">mission</code>, <code class="bg-gray-100 px-1 rounded text-xs">goto x y</code>.</p>
-      </div>
-    </section>
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+              <div class="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center text-base">🐧</div>
+              <div>
+                <div class="text-sm font-semibold text-gray-800">Native — Linux (Ubuntu 24.04)</div>
+              </div>
+            </div>
+            <div class="px-6 py-5">
+              <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>sudo apt install \
+  ros-jazzy-robot-state-publisher \
+  ros-jazzy-joint-state-publisher \
+  ros-jazzy-rviz2 ros-jazzy-xacro
+
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash</code></pre>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Launch & Commands -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Launch &amp; Commands</h3>
+        <div class="space-y-5">
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Launch</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 launch arm_simulation humanoid_robot.launch.py</code></pre>
+            <p class="text-xs text-gray-400 mt-3">Open a second terminal for commands:</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 mt-2 overflow-x-auto"><code>docker exec -it arm-sim bash
+source install/setup.bash</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Greetings &amp; social commands</p>
+            <div class="overflow-x-auto mb-3">
+              <table class="w-full text-xs text-gray-600">
+                <thead><tr class="text-gray-400 border-b border-gray-100"><th class="text-left pb-2 font-medium">Command</th><th class="text-left pb-2 font-medium">Description</th></tr></thead>
+                <tbody class="divide-y divide-gray-50">
+                  <tr><td class="py-1.5 font-mono text-gray-700">hello</td><td class="py-1.5">Right arm raises to forehead and sweeps outward</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">bye</td><td class="py-1.5">Right arm raised, hand waves side to side three times</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">yes</td><td class="py-1.5">Head nods twice</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">no</td><td class="py-1.5">Head shakes twice</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">please</td><td class="py-1.5">Flat hand makes two circles over the chest</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">thanks</td><td class="py-1.5">Flat hand near chin sweeps forward and down</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">welcome</td><td class="py-1.5">Both arms spread wide with a slight forward bow</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">sorry</td><td class="py-1.5">Closed fist makes two circles over the chest</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">come</td><td class="py-1.5">Arm extends forward then beckons twice</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">stop</td><td class="py-1.5">Right arm raised, palm facing out — halt signal</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">good</td><td class="py-1.5">Flat hand near chin sweeps forward and down</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">why</td><td class="py-1.5">Alternating arm swing with head tilts</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "hello"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "bye"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "yes"'</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Alphabet &amp; numbers</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code># Individual letters (a–z)
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "a"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "z"'
+
+# Numbers (1–10)
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "1"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "10"'   # wrist oscillation</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Full sequences — one command runs the whole set</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "numbers"'   # 1→10
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "alphabet"'  # a→z
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "dance_all"' # all 5 dances</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Dance moves</p>
+            <div class="overflow-x-auto mb-3">
+              <table class="w-full text-xs text-gray-600">
+                <thead><tr class="text-gray-400 border-b border-gray-100"><th class="text-left pb-2 font-medium">Command</th><th class="text-left pb-2 font-medium">Description</th></tr></thead>
+                <tbody class="divide-y divide-gray-50">
+                  <tr><td class="py-1.5 font-mono text-gray-700">robot</td><td class="py-1.5">Stiff mechanical arm snaps with head turns</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">celebrate</td><td class="py-1.5">Both arms shoot up and wave, jazz hands finish</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">wave</td><td class="py-1.5">Alternating arm raises — friendly crowd wave</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">groove</td><td class="py-1.5">Funky alternating arm sweeps with double pump</td></tr>
+                  <tr><td class="py-1.5 font-mono text-gray-700">disco</td><td class="py-1.5">Classic Saturday-Night-Fever alternating diagonal point</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code>ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "robot"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "celebrate"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "disco"'</code></pre>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl px-6 py-5">
+            <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Manual body control — individual joints</p>
+            <pre class="bg-gray-950 text-gray-100 text-sm rounded-lg px-5 py-4 overflow-x-auto"><code># Raise right arm
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String \
+  'data: "{\"right_shoulder_pitch\": 0.8, \"right_elbow_pitch\": 1.2}"'
+
+# Presets
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String 'data: "neutral"'
+ros2 topic pub -1 /body_pose_command std_msgs/msg/String 'data: "signing_ready"'</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Videos -->
+      <section>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Demo Videos</h3>
+        <div class="space-y-6">
+
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 pt-5 pb-3">
+              <p class="text-sm font-semibold text-gray-800">Interaction Commands</p>
+              <p class="text-xs text-gray-400 mt-0.5">hello, bye, yes, no, please, thanks, and more</p>
+            </div>
+            <video controls preload="none" class="w-full">
+              <source src="demo/commands.mov" type="video/mp4" />
+              Your browser does not support this video.
+            </video>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div class="px-6 pt-5 pb-3">
+              <p class="text-sm font-semibold text-gray-800">Dance Moves — All 5</p>
+              <p class="text-xs text-gray-400 mt-0.5">robot → celebrate → wave → groove → disco</p>
+            </div>
+            <video controls preload="none" class="w-full">
+              <source src="demo/dance_all.mov" type="video/mp4" />
+              Your browser does not support this video.
+            </video>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+    <!-- end humanoid tab -->
 
   </main>
 
-  <footer class="border-t border-gray-200 mt-10 px-6 py-6 max-w-4xl mx-auto text-sm text-gray-400">
-    ROS 2 Jazzy &mdash; Ubuntu 24.04 &mdash; <a href="https://github.com/rmukkavilli/robotics" class="underline hover:text-gray-600">GitHub</a>
+  <footer class="border-t border-gray-200 mt-6">
+    <div class="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between text-xs text-gray-400">
+      <span>Robotics Simulation Workspace — ROS 2 Jazzy</span>
+      <a href="https://github.com/rmukkavilli/robotics" class="hover:text-gray-600 transition-colors">GitHub →</a>
+    </div>
   </footer>
+
+  <script>
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.add('active');
+      document.getElementById('content-' + name).classList.add('active');
+    }
+  </script>
 
 </body>
 </html>

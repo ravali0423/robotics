@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robotics Simulation Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800 font-sans">
+
+  <!-- Header -->
+  <header class="border-b border-gray-200 px-6 py-8 max-w-4xl mx-auto">
+    <h1 class="text-3xl font-semibold tracking-tight">Robotics Simulation Workspace</h1>
+    <p class="mt-2 text-gray-500 text-base">A ROS 2 Jazzy workspace with robotic hand simulations and an autonomous warehouse robot.</p>
+    <div class="mt-4 flex gap-4 text-sm">
+      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">ROS 2 Jazzy</span>
+      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">Python 3.10+</span>
+      <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full">Docker</span>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-6 py-10 space-y-14">
+
+    <!-- Overview -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4">Packages</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="border border-gray-200 rounded-lg p-5">
+          <h3 class="font-semibold text-base mb-1">arm_simulation</h3>
+          <p class="text-sm text-gray-500">Robotic hand simulations with ASL gesture support, speech-to-gesture pipeline, and a full humanoid sign language interpreter.</p>
+          <ul class="mt-3 text-sm text-gray-600 space-y-1 list-disc list-inside">
+            <li>Single &amp; dual robotic hands</li>
+            <li>Humanoid sign language interpreter</li>
+            <li>Speech-to-gesture system</li>
+            <li>A–Z alphabet, 0–10 numbers, dance moves</li>
+          </ul>
+        </div>
+        <div class="border border-gray-200 rounded-lg p-5">
+          <h3 class="font-semibold text-base mb-1">warehouse_robot</h3>
+          <p class="text-sm text-gray-500">Autonomous warehouse delivery robot with web joystick control, waypoint navigation, and mission logging.</p>
+          <ul class="mt-3 text-sm text-gray-600 space-y-1 list-disc list-inside">
+            <li>Web joystick UI (browser-based)</li>
+            <li>Autonomous waypoint navigation</li>
+            <li>WASD terminal control</li>
+            <li>Mission log management</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Videos -->
+    <section>
+      <h2 class="text-xl font-semibold mb-1">Demos</h2>
+      <p class="text-sm text-gray-500 mb-4">Click any card to open the video in a new tab.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+        <a href="demo/humanoid.png" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">🤖</div>
+          <div class="font-medium text-sm">Humanoid Robot</div>
+          <div class="text-xs text-gray-400 mt-1">Image · Full-body view</div>
+        </a>
+
+        <a href="demo/numbers.mov" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">🔢</div>
+          <div class="font-medium text-sm">Numbers (1–10)</div>
+          <div class="text-xs text-gray-400 mt-1">Video · ASL number signs</div>
+        </a>
+
+        <a href="demo/alphabets.mov" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">🔤</div>
+          <div class="font-medium text-sm">Alphabet (A–Z)</div>
+          <div class="text-xs text-gray-400 mt-1">Video · ASL letter signs</div>
+        </a>
+
+        <a href="demo/numbers%20%26%20alphabets.mov" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">🔢🔤</div>
+          <div class="font-medium text-sm">Numbers &amp; Alphabets</div>
+          <div class="text-xs text-gray-400 mt-1">Video · Combined sequence</div>
+        </a>
+
+        <a href="demo/commands.mov" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">👋</div>
+          <div class="font-medium text-sm">Interaction Commands</div>
+          <div class="text-xs text-gray-400 mt-1">Video · hello, bye, yes, no…</div>
+        </a>
+
+        <a href="demo/dance_all.mov" target="_blank" rel="noopener"
+           class="border border-gray-200 rounded-lg p-4 hover:border-gray-400 hover:bg-gray-50 transition block">
+          <div class="text-2xl mb-2">🕺</div>
+          <div class="font-medium text-sm">Dance Moves</div>
+          <div class="text-xs text-gray-400 mt-1">Video · robot, celebrate, groove, disco…</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Setup -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4">Setup</h2>
+
+      <div class="space-y-6">
+
+        <!-- Docker -->
+        <div>
+          <h3 class="font-semibold text-base mb-2">Docker (Mac &amp; Windows)</h3>
+          <p class="text-sm text-gray-500 mb-3">The Docker image bundles ROS 2 Jazzy and a VNC server so you can view RViz2 from any platform.</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm overflow-x-auto text-gray-700"><code>docker build -t arm-sim .
+docker run -it --name arm-sim -p 5900:5900 arm-sim</code></pre>
+          <p class="text-sm text-gray-500 mt-2">Then connect with <a href="https://www.realvnc.com/en/connect/download/viewer/" target="_blank" class="underline">VNC Viewer</a> to <code class="bg-gray-100 px-1 rounded text-xs">localhost:5900</code>.</p>
+        </div>
+
+        <!-- Native -->
+        <div>
+          <h3 class="font-semibold text-base mb-2">Native (Linux)</h3>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm overflow-x-auto text-gray-700"><code>rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash</code></pre>
+        </div>
+
+        <!-- Requirements -->
+        <div>
+          <h3 class="font-semibold text-base mb-2">Requirements</h3>
+          <ul class="text-sm text-gray-600 list-disc list-inside space-y-1">
+            <li>Ubuntu 24.04 LTS (native) or Docker</li>
+            <li>ROS 2 Jazzy</li>
+            <li>Python 3.10+</li>
+            <li><code class="bg-gray-100 px-1 rounded text-xs">colcon</code>, <code class="bg-gray-100 px-1 rounded text-xs">rosdep</code></li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Arm Simulation -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4">Arm Simulation</h2>
+      <div class="space-y-5 text-sm text-gray-700">
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Single Hand</h3>
+          <p class="text-gray-500 mb-2">5-finger robotic hand with ASL gestures and real-time finger counting.</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation robotic_hand.launch.py</code></pre>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Dual Hands</h3>
+          <p class="text-gray-500 mb-2">Two hands side by side. Supports combined finger counting (0–10) and two-character word spelling.</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation dual_hands.launch.py</code></pre>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Humanoid Sign Language Interpreter</h3>
+          <p class="text-gray-500 mb-2">Full humanoid (~1.5 m tall). Send a single <code class="bg-gray-100 px-1 rounded">/sign_command</code> and the body animates — arms, fingers, and head simultaneously.</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation humanoid_robot.launch.py
+# Then in a second terminal:
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "hello"'
+ros2 topic pub -1 /sign_command std_msgs/msg/String 'data: "dance_all"'</code></pre>
+          <p class="text-gray-500 mt-2">Supported: <code class="bg-gray-100 px-1 rounded text-xs">hello</code>, <code class="bg-gray-100 px-1 rounded text-xs">a</code>–<code class="bg-gray-100 px-1 rounded text-xs">z</code>, <code class="bg-gray-100 px-1 rounded text-xs">1</code>–<code class="bg-gray-100 px-1 rounded text-xs">10</code>, <code class="bg-gray-100 px-1 rounded text-xs">bye</code>, <code class="bg-gray-100 px-1 rounded text-xs">yes</code>, <code class="bg-gray-100 px-1 rounded text-xs">no</code>, <code class="bg-gray-100 px-1 rounded text-xs">please</code>, <code class="bg-gray-100 px-1 rounded text-xs">thanks</code>, <code class="bg-gray-100 px-1 rounded text-xs">robot</code>, <code class="bg-gray-100 px-1 rounded text-xs">disco</code>, <code class="bg-gray-100 px-1 rounded text-xs">groove</code>, and more.</p>
+        </div>
+
+        <div>
+          <h3 class="font-semibold text-gray-900 mb-1">Speech-to-Gesture</h3>
+          <p class="text-gray-500 mb-2">Translates spoken words into ASL gestures in real time. Works in text-only mode without a microphone.</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code>ros2 launch arm_simulation speech_to_gesture.launch.py
+# Text mode:
+ros2 topic pub /text_to_sequence std_msgs/msg/String '{data: "cat"}' --once</code></pre>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Warehouse Robot -->
+    <section>
+      <h2 class="text-xl font-semibold mb-4">Warehouse Robot</h2>
+      <p class="text-sm text-gray-500 mb-4">Autonomous delivery robot with a browser-based joystick, waypoint navigation, and mission logging.</p>
+      <div class="space-y-4 text-sm text-gray-700">
+        <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-x-auto"><code># Terminal 1 — Gazebo simulation
+ros2 launch warehouse_robot warehouse_with_joystick.launch.py
+
+# Terminal 2 — web joystick
+python3 src/warehouse_robot/scripts/web_joystick_controller.py
+# Open http://localhost:8080/joystick.html</code></pre>
+        <p class="text-gray-500">Autonomous navigation commands: <code class="bg-gray-100 px-1 rounded text-xs">pickup</code>, <code class="bg-gray-100 px-1 rounded text-xs">deliver</code>, <code class="bg-gray-100 px-1 rounded text-xs">return</code>, <code class="bg-gray-100 px-1 rounded text-xs">mission</code>, <code class="bg-gray-100 px-1 rounded text-xs">goto x y</code>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-gray-200 mt-10 px-6 py-6 max-w-4xl mx-auto text-sm text-gray-400">
+    ROS 2 Jazzy &mdash; Ubuntu 24.04 &mdash; <a href="https://github.com/rmukkavilli/robotics" class="underline hover:text-gray-600">GitHub</a>
+  </footer>
+
+</body>
+</html>
